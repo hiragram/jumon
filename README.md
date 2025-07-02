@@ -92,8 +92,10 @@ jumon remove commandName
 
 - `only`: Array of specific commands. Empty array means install all commands from repository.
 - `version`: Version constraint (e.g., "1.2.0", "~> 1.2.0", ">= 1.0.0")
-- `branch`: Specific branch to use (alternative to version/tag)
+- `branch`: Specific branch to use (defaults to "main" if no version/tag specified)
 - `tag`: Specific tag to use (alternative to version/branch)
+
+**Note**: Only one of version/branch/tag should be specified. If none are provided, defaults to "main" branch.
 
 ### Lock file structure (jumon-lock.json)
 
