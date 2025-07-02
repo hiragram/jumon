@@ -2,7 +2,8 @@ import path from 'path';
 import fs from 'fs-extra';
 import { parseRepositoryPath, getFileContent, findMarkdownFiles, getLatestCommitHash } from '../utils/github.js';
 import { ensureCommandsDir } from '../utils/paths.js';
-import { addRepositoryToConfig, addRepositoryToLock } from '../utils/config.js';
+import { addRepositoryToConfig, addRepositoryToLock, loadJumonConfig } from '../utils/config.js';
+import { createInterface } from 'readline';
 
 async function checkCommandConflict(commandName, targetDir) {
   const existingFiles = await fs.readdir(targetDir).catch(() => []);
@@ -26,12 +27,91 @@ async function checkCommandConflict(commandName, targetDir) {
   return null;
 }
 
+async function promptUser(question) {
+  const rl = createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+  
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      rl.close();
+      resolve(answer.toLowerCase().trim());
+    });
+  });
+}
+
+async function checkRepositoryConflict(user, repo, commandPath, isLocal) {
+  const config = await loadJumonConfig(isLocal);
+  const repoKey = `${user}/${repo}`;
+  
+  if (!config.repositories || !config.repositories[repoKey]) {
+    return { hasConflict: false };
+  }
+  
+  const existingRepo = config.repositories[repoKey];
+  
+  // Check if all commands are already installed (empty only array)
+  if (commandPath && existingRepo.only && existingRepo.only.length === 0) {
+    return {
+      hasConflict: true,
+      type: 'all-to-specific',
+      message: `Repository ${repoKey} is already configured to install ALL commands. ` +
+               `Do you want to change it to install only the specific command '${commandPath.split('/').pop().replace('.md', '')}'?`
+    };
+  }
+  
+  // Check if specific commands are already installed but trying to install all
+  if (!commandPath && existingRepo.only && existingRepo.only.length > 0) {
+    const commandNames = existingRepo.only.map(cmd => cmd.name).join(', ');
+    return {
+      hasConflict: true,
+      type: 'specific-to-all', 
+      message: `Repository ${repoKey} is already configured to install specific commands: ${commandNames}. ` +
+               `Do you want to change it to install ALL commands from this repository?`
+    };
+  }
+  
+  // Check if the same specific command is already configured
+  if (commandPath && existingRepo.only && existingRepo.only.length > 0) {
+    const commandName = commandPath.split('/').pop().replace('.md', '');
+    const existingCommand = existingRepo.only.find(cmd => 
+      cmd.path === commandPath || cmd.name === commandName
+    );
+    
+    if (existingCommand) {
+      return {
+        hasConflict: true,
+        type: 'same-command',
+        message: `Command '${commandName}' is already configured for repository ${repoKey}. ` +
+                 `Do you want to update it?`
+      };
+    }
+  }
+  
+  return { hasConflict: false };
+}
+
 export async function addCommand(repository, options) {
   try {
     const isLocal = !options.global;
     const { user, repo, commandPath } = parseRepositoryPath(repository);
     
     console.log(`Adding command from ${user}/${repo}${commandPath ? `/${commandPath}` : ''}...`);
+    
+    // Check for repository configuration conflicts
+    const conflict = await checkRepositoryConflict(user, repo, commandPath, isLocal);
+    
+    if (conflict.hasConflict) {
+      console.log(`\n⚠️  ${conflict.message}`);
+      const answer = await promptUser('Continue? (y/N): ');
+      
+      if (answer !== 'y' && answer !== 'yes') {
+        console.log('Operation cancelled.');
+        return;
+      }
+      console.log('');
+    }
     
     if (commandPath) {
       const filePath = commandPath.endsWith('.md') ? commandPath : `${commandPath}.md`;
