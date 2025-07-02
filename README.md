@@ -1,6 +1,6 @@
 # Jumon
 
-Claude Code custom slash commands package manager for easy sharing and management
+Claude Code custom slash commands package manager for easy sharing and management of commands
 
 ## Installation
 
