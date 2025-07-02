@@ -7,56 +7,7 @@ export async function loadJumonConfig(isLocal = false) {
   
   try {
     if (await fs.pathExists(configPath)) {
-      const content = await fs.readJson(configPath);
-      
-      // Migration: convert old structure to new structure
-      if (content.commands && !content.repositories) {
-        const newConfig = {
-          repositories: {}
-        };
-        
-        // Convert old commands structure to new repositories structure
-        for (const [repoPath, commandConfig] of Object.entries(content.commands)) {
-          try {
-            const { user, repo, commandPath } = parseRepositoryPath(repoPath);
-            const repoKey = `${user}/${repo}`;
-            
-            if (!newConfig.repositories[repoKey]) {
-              newConfig.repositories[repoKey] = {
-                only: []
-              };
-            }
-            
-            if (commandPath) {
-              const commandName = commandConfig.alias || commandPath.split('/').pop().replace('.md', '');
-              newConfig.repositories[repoKey].only.push({
-                name: commandName,
-                path: commandPath,
-                alias: commandConfig.alias || null
-              });
-            } else {
-              // Repository-wide installation
-              newConfig.repositories[repoKey].only = [];
-            }
-          } catch (error) {
-            console.warn(`Failed to migrate command entry: ${repoPath}`);
-          }
-        }
-        
-        return newConfig;
-      }
-      
-      // Migration: rename commands to only in existing repositories structure
-      if (content.repositories) {
-        for (const [repoKey, repoConfig] of Object.entries(content.repositories)) {
-          if (repoConfig.commands !== undefined && repoConfig.only === undefined) {
-            repoConfig.only = repoConfig.commands;
-            delete repoConfig.commands;
-          }
-        }
-      }
-      
-      return content;
+      return await fs.readJson(configPath);
     }
   } catch (error) {
     console.warn(`Failed to load jumon.json: ${error.message}`);
@@ -78,22 +29,14 @@ export async function loadJumonLock(isLocal = false) {
   
   try {
     if (await fs.pathExists(lockPath)) {
-      const content = await fs.readJson(lockPath);
-      // Migration: convert old structure to new structure
-      if (content.commands && !content.repositories) {
-        return {
-          lockfileVersion: 2,
-          repositories: {}
-        };
-      }
-      return content;
+      return await fs.readJson(lockPath);
     }
   } catch (error) {
     console.warn(`Failed to load jumon-lock.json: ${error.message}`);
   }
   
   return {
-    lockfileVersion: 2,
+    lockfileVersion: 1,
     repositories: {}
   };
 }
@@ -161,15 +104,6 @@ export async function addRepositoryToConfig(user, repo, commandPath = null, alia
   await saveJumonConfig(config, isLocal);
 }
 
-// Legacy function for backward compatibility
-export async function addCommandToConfig(repoPath, alias, isLocal = false) {
-  try {
-    const { user, repo, commandPath } = parseRepositoryPath(repoPath);
-    await addRepositoryToConfig(user, repo, commandPath, alias, isLocal);
-  } catch (error) {
-    console.warn(`Failed to add command to config: ${error.message}`);
-  }
-}
 
 export async function addRepositoryToLock(user, repo, revision, commandPath = null, isLocal = false) {
   const lock = await loadJumonLock(isLocal);

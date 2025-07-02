@@ -1,0 +1,311 @@
+import { jest } from '@jest/globals';
+import fs from 'fs-extra';
+import { createInterface } from 'readline';
+import { addCommand } from '../../src/commands/add.js';
+import * as github from '../../src/utils/github.js';
+import * as paths from '../../src/utils/paths.js';
+import * as config from '../../src/utils/config.js';
+
+// Mock all dependencies
+jest.mock('fs-extra');
+jest.mock('readline');
+jest.mock('../../src/utils/github.js');
+jest.mock('../../src/utils/paths.js');
+jest.mock('../../src/utils/config.js');
+
+const mockedFs = fs;
+const mockedGithub = github;
+const mockedPaths = paths;
+const mockedConfig = config;
+const mockedReadline = createInterface;
+
+describe('Add Command', () => {
+  let consoleSpy;
+  let processExitSpy;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    
+    // Mock console.log and console.error
+    consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+    jest.spyOn(console, 'error').mockImplementation();
+    
+    // Mock process.exit
+    processExitSpy = jest.spyOn(process, 'exit').mockImplementation();
+    
+    // Setup default mocks
+    mockedGithub.parseRepositoryPath.mockReturnValue({
+      user: 'testuser',
+      repo: 'testrepo',
+      commandPath: 'test.md'
+    });
+    
+    mockedPaths.ensureCommandsDir.mockResolvedValue('/test/commands');
+    mockedFs.ensureDir.mockResolvedValue();
+    mockedFs.readdir.mockResolvedValue([]);
+    mockedFs.pathExists.mockResolvedValue(false);
+    mockedFs.writeFile.mockResolvedValue();
+    
+    mockedGithub.getFileContent.mockResolvedValue('# Test Command\nTest content');
+    mockedGithub.getLatestCommitHash.mockResolvedValue('abc123def456');
+    
+    mockedConfig.loadJumonConfig.mockResolvedValue({ repositories: {} });
+    mockedConfig.addRepositoryToConfig.mockResolvedValue();
+    mockedConfig.addRepositoryToLock.mockResolvedValue();
+  });
+
+  afterEach(() => {
+    consoleSpy.mockRestore();
+    processExitSpy.mockRestore();
+  });
+
+  describe('successful scenarios', () => {
+    test('should add specific command successfully', async () => {
+      const options = { global: false };
+
+      await addCommand('testuser/testrepo/test', options);
+
+      expect(mockedGithub.parseRepositoryPath).toHaveBeenCalledWith('testuser/testrepo/test');
+      expect(mockedPaths.ensureCommandsDir).toHaveBeenCalledWith(true);
+      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md');
+      expect(mockedFs.writeFile).toHaveBeenCalledWith('/test/commands/testuser/testrepo/test.md', '# Test Command\nTest content');
+      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, undefined, 'main', undefined, true);
+      expect(consoleSpy).toHaveBeenCalledWith("✓ Successfully installed command 'test' to /test/commands/testuser/testrepo/test.md");
+    });
+
+    test('should add command with alias', async () => {
+      const options = { global: false, alias: 'custom-name' };
+
+      await addCommand('testuser/testrepo/test', options);
+
+      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', 'custom-name', undefined, 'main', undefined, true);
+      expect(consoleSpy).toHaveBeenCalledWith("✓ Successfully installed command 'custom-name' to /test/commands/testuser/testrepo/custom-name.md");
+    });
+
+    test('should add command globally', async () => {
+      const options = { global: true };
+
+      await addCommand('testuser/testrepo/test', options);
+
+      expect(mockedPaths.ensureCommandsDir).toHaveBeenCalledWith(false);
+      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, undefined, 'main', undefined, false);
+    });
+
+    test('should add command with version constraint', async () => {
+      const options = { global: false, version: '1.0.0' };
+
+      await addCommand('testuser/testrepo/test', options);
+
+      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, '1.0.0', undefined, undefined, true);
+    });
+
+    test('should add command with branch constraint', async () => {
+      const options = { global: false, branch: 'develop' };
+
+      await addCommand('testuser/testrepo/test', options);
+
+      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, undefined, 'develop', undefined, true);
+    });
+
+    test('should add all commands from repository', async () => {
+      mockedGithub.parseRepositoryPath.mockReturnValue({
+        user: 'testuser',
+        repo: 'testrepo',
+        commandPath: null
+      });
+      
+      mockedGithub.findMarkdownFiles.mockResolvedValue([
+        { name: 'command1', path: 'command1.md' },
+        { name: 'command2', path: 'command2.md' }
+      ]);
+
+      const options = { global: false };
+
+      await addCommand('testuser/testrepo', options);
+
+      expect(mockedGithub.findMarkdownFiles).toHaveBeenCalledWith('testuser', 'testrepo');
+      expect(mockedGithub.getFileContent).toHaveBeenCalledTimes(2);
+      expect(mockedFs.writeFile).toHaveBeenCalledTimes(2);
+      expect(consoleSpy).toHaveBeenCalledWith('Installing 2 commands...');
+      expect(consoleSpy).toHaveBeenCalledWith('✓ Installed command1');
+      expect(consoleSpy).toHaveBeenCalledWith('✓ Installed command2');
+    });
+  });
+
+  describe('conflict handling', () => {
+    test('should handle command name conflicts without alias', async () => {
+      mockedFs.readdir.mockResolvedValue(['existing']);
+      mockedFs.stat.mockResolvedValue({ isDirectory: () => true });
+      
+      // First call returns subdirectory, second call returns conflicting file
+      mockedFs.readdir
+        .mockResolvedValueOnce(['existing'])
+        .mockResolvedValueOnce(['test.md']);
+
+      const options = { global: false };
+
+      await addCommand('testuser/testrepo/test', options);
+
+      expect(processExitSpy).toHaveBeenCalledWith(1);
+      expect(console.error).toHaveBeenCalledWith("Error: Command 'test' already exists at /test/commands/existing/test.md");
+    });
+
+    test('should allow command conflicts with alias', async () => {
+      mockedFs.readdir.mockResolvedValue(['existing']);
+      mockedFs.stat.mockResolvedValue({ isDirectory: () => true });
+      mockedFs.readdir
+        .mockResolvedValueOnce(['existing'])
+        .mockResolvedValueOnce(['test.md']);
+
+      const options = { global: false, alias: 'unique-name' };
+
+      await addCommand('testuser/testrepo/test', options);
+
+      expect(processExitSpy).not.toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalledWith("✓ Successfully installed command 'unique-name' to /test/commands/testuser/testrepo/unique-name.md");
+    });
+
+    test('should handle repository configuration conflicts with user confirmation', async () => {
+      mockedConfig.loadJumonConfig.mockResolvedValue({
+        repositories: {
+          'testuser/testrepo': {
+            only: []
+          }
+        }
+      });
+
+      // Mock readline to simulate user saying 'yes'
+      const mockRl = {
+        question: jest.fn((question, callback) => callback('y')),
+        close: jest.fn()
+      };
+      mockedReadline.mockReturnValue(mockRl);
+
+      const options = { global: false };
+
+      await addCommand('testuser/testrepo/test', options);
+
+      expect(mockRl.question).toHaveBeenCalledWith('Continue? (y/N): ', expect.any(Function));
+      expect(processExitSpy).not.toHaveBeenCalled();
+    });
+
+    test('should cancel on repository configuration conflict when user declines', async () => {
+      mockedConfig.loadJumonConfig.mockResolvedValue({
+        repositories: {
+          'testuser/testrepo': {
+            only: []
+          }
+        }
+      });
+
+      const mockRl = {
+        question: jest.fn((question, callback) => callback('n')),
+        close: jest.fn()
+      };
+      mockedReadline.mockReturnValue(mockRl);
+
+      const options = { global: false };
+
+      await addCommand('testuser/testrepo/test', options);
+
+      expect(consoleSpy).toHaveBeenCalledWith('Operation cancelled.');
+      expect(mockedGithub.getFileContent).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('error handling', () => {
+    test('should handle GitHub API errors', async () => {
+      mockedGithub.getFileContent.mockRejectedValue(new Error('File not found'));
+
+      const options = { global: false };
+
+      await addCommand('testuser/testrepo/test', options);
+
+      expect(processExitSpy).toHaveBeenCalledWith(1);
+      expect(console.error).toHaveBeenCalledWith('Error: File not found');
+    });
+
+    test('should handle empty repository', async () => {
+      mockedGithub.parseRepositoryPath.mockReturnValue({
+        user: 'testuser',
+        repo: 'testrepo',
+        commandPath: null
+      });
+      
+      mockedGithub.findMarkdownFiles.mockResolvedValue([]);
+
+      const options = { global: false };
+
+      await addCommand('testuser/testrepo', options);
+
+      expect(processExitSpy).toHaveBeenCalledWith(1);
+      expect(console.error).toHaveBeenCalledWith('No markdown files found in testuser/testrepo');
+    });
+
+    test('should handle conflicts when installing all commands', async () => {
+      mockedGithub.parseRepositoryPath.mockReturnValue({
+        user: 'testuser',
+        repo: 'testrepo',
+        commandPath: null
+      });
+      
+      mockedGithub.findMarkdownFiles.mockResolvedValue([
+        { name: 'command1', path: 'command1.md' }
+      ]);
+
+      mockedFs.readdir.mockResolvedValue(['existing']);
+      mockedFs.stat.mockResolvedValue({ isDirectory: () => true });
+      mockedFs.readdir
+        .mockResolvedValueOnce(['existing'])
+        .mockResolvedValueOnce(['command1.md']);
+
+      const options = { global: false };
+
+      await addCommand('testuser/testrepo', options);
+
+      expect(processExitSpy).toHaveBeenCalledWith(1);
+      expect(console.error).toHaveBeenCalledWith('Error: The following commands already exist:');
+    });
+
+    test('should handle file system errors gracefully', async () => {
+      mockedFs.writeFile.mockRejectedValue(new Error('Permission denied'));
+
+      const options = { global: false };
+
+      await addCommand('testuser/testrepo/test', options);
+
+      expect(processExitSpy).toHaveBeenCalledWith(1);
+      expect(console.error).toHaveBeenCalledWith('Error: Permission denied');
+    });
+  });
+
+  describe('command path handling', () => {
+    test('should handle .md extension in command path', async () => {
+      mockedGithub.parseRepositoryPath.mockReturnValue({
+        user: 'testuser',
+        repo: 'testrepo',
+        commandPath: 'test.md'
+      });
+
+      const options = { global: false };
+
+      await addCommand('testuser/testrepo/test.md', options);
+
+      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md');
+    });
+
+    test('should add .md extension when missing', async () => {
+      mockedGithub.parseRepositoryPath.mockReturnValue({
+        user: 'testuser',
+        repo: 'testrepo',
+        commandPath: 'test'
+      });
+
+      const options = { global: false };
+
+      await addCommand('testuser/testrepo/test', options);
+
+      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md');
+    });
+  });
+});

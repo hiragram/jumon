@@ -123,7 +123,7 @@ The update command will:
 
 ```json
 {
-  "lockfileVersion": 2,
+  "lockfileVersion": 1,
   "repositories": {
     "user/repo": {
       "revision": "abc1234567890abcdef1234567890abcdef123456",
