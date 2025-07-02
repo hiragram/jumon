@@ -65,11 +65,19 @@ jumon remove commandName
   "lockfileVersion": 2,
   "repositories": {
     "user/repo": {
-      "revision": "abc1234567890abcdef1234567890abcdef123456"
+      "revision": "abc1234567890abcdef1234567890abcdef123456",
+      "only": ["command1", "command2"]
+    },
+    "user/another-repo": {
+      "revision": "def7890abcdef1234567890abcdef123456789abc",
+      "only": []
     }
   }
 }
 ```
+
+- `revision`: Git commit hash for the repository
+- `only`: Array of specific commands to install. Empty array means install all commands.
 
 ## Command Installation Paths
 

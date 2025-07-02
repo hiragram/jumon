@@ -50,15 +50,24 @@ export async function installCommand(options) {
           
           console.log(`✓ Installed ${commandName} from ${repoKey}@${lockInfo.revision.substring(0, 7)}`);
         } else {
-          // Install all commands from repository
+          // Install commands from repository (all or only specified ones)
           const files = await findMarkdownFiles(user, repo);
+          const onlyCommands = lockInfo.only || [];
           
-          for (const file of files) {
+          const filesToInstall = onlyCommands.length > 0 
+            ? files.filter(file => onlyCommands.includes(file.name))
+            : files;
+          
+          for (const file of filesToInstall) {
             const content = await getFileContent(user, repo, file.path);
             const targetFile = path.join(targetDir, file.name + '.md');
             await fs.writeFile(targetFile, content);
             
             console.log(`✓ Installed ${file.name} from ${repoKey}@${lockInfo.revision.substring(0, 7)}`);
+          }
+          
+          if (onlyCommands.length > 0) {
+            console.log(`  (Only installing: ${onlyCommands.join(', ')})`);
           }
         }
         

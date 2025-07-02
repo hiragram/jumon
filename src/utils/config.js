@@ -71,7 +71,7 @@ export async function addCommandToConfig(repoPath, alias, isLocal = false) {
   await saveJumonConfig(config, isLocal);
 }
 
-export async function addRepositoryToLock(user, repo, revision, isLocal = false) {
+export async function addRepositoryToLock(user, repo, revision, commandPath = null, isLocal = false) {
   const lock = await loadJumonLock(isLocal);
   
   if (!lock.repositories) {
@@ -79,10 +79,31 @@ export async function addRepositoryToLock(user, repo, revision, isLocal = false)
   }
   
   const repoKey = `${user}/${repo}`;
-  lock.repositories[repoKey] = {
-    revision: revision
+  const existingRepo = lock.repositories[repoKey];
+  
+  // Create or update repository entry
+  const repoEntry = {
+    revision: revision,
+    only: []
   };
   
+  // If there's an existing entry, preserve existing "only" commands
+  if (existingRepo && existingRepo.only) {
+    repoEntry.only = [...existingRepo.only];
+  }
+  
+  // Add new command to "only" list if specified
+  if (commandPath) {
+    const commandName = commandPath.split('/').pop().replace('.md', '');
+    if (!repoEntry.only.includes(commandName)) {
+      repoEntry.only.push(commandName);
+    }
+  } else if (!existingRepo || !existingRepo.only || existingRepo.only.length === 0) {
+    // If no specific command and no existing "only" list, keep empty (all commands)
+    repoEntry.only = [];
+  }
+  
+  lock.repositories[repoKey] = repoEntry;
   await saveJumonLock(lock, isLocal);
 }
 
