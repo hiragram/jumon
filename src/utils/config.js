@@ -31,6 +31,13 @@ export async function loadJumonLock(isLocal = false) {
   try {
     if (await fs.pathExists(lockPath)) {
       const content = await fs.readJson(lockPath);
+      // Migration: convert old structure to new structure
+      if (content.commands && !content.repositories) {
+        return {
+          lockfileVersion: 2,
+          repositories: {}
+        };
+      }
       return content;
     }
   } catch (error) {
@@ -38,8 +45,8 @@ export async function loadJumonLock(isLocal = false) {
   }
   
   return {
-    lockfileVersion: 1,
-    commands: {}
+    lockfileVersion: 2,
+    repositories: {}
   };
 }
 
@@ -64,18 +71,23 @@ export async function addCommandToConfig(repoPath, alias, isLocal = false) {
   await saveJumonConfig(config, isLocal);
 }
 
-export async function addCommandToLock(repoPath, commandName, user, repo, filePath, isLocal = false) {
+export async function addRepositoryToLock(user, repo, revision, isLocal = false) {
   const lock = await loadJumonLock(isLocal);
   
-  if (!lock.commands) {
-    lock.commands = {};
+  if (!lock.repositories) {
+    lock.repositories = {};
   }
   
-  lock.commands[commandName] = {
-    repository: `${user}/${repo}`,
-    path: filePath,
-    source: repoPath
+  const repoKey = `${user}/${repo}`;
+  lock.repositories[repoKey] = {
+    revision: revision
   };
   
   await saveJumonLock(lock, isLocal);
+}
+
+export async function getRepositoryFromLock(user, repo, isLocal = false) {
+  const lock = await loadJumonLock(isLocal);
+  const repoKey = `${user}/${repo}`;
+  return lock.repositories?.[repoKey] || null;
 }

@@ -1,37 +1,69 @@
 import path from 'path';
 import fs from 'fs-extra';
-import { getFileContent } from '../utils/github.js';
+import { getFileContent, findMarkdownFiles, parseRepositoryPath } from '../utils/github.js';
 import { ensureCommandsDir } from '../utils/paths.js';
-import { loadJumonLock } from '../utils/config.js';
+import { loadJumonLock, loadJumonConfig } from '../utils/config.js';
 
 export async function installCommand(options) {
   try {
     const isLocal = !options.global;
+    const config = await loadJumonConfig(isLocal);
     const lock = await loadJumonLock(isLocal);
     
-    if (!lock.commands || Object.keys(lock.commands).length === 0) {
-      console.log('No commands to install (jumon-lock.json is empty or not found)');
+    if (!config.commands || Object.keys(config.commands).length === 0) {
+      console.log('No commands to install (jumon.json is empty or not found)');
+      return;
+    }
+    
+    if (!lock.repositories || Object.keys(lock.repositories).length === 0) {
+      console.log('No locked repositories found (jumon-lock.json is empty or not found)');
       return;
     }
     
     const commandsDir = await ensureCommandsDir(isLocal);
-    const commands = Object.entries(lock.commands);
+    const commandEntries = Object.entries(config.commands);
     
-    console.log(`Installing ${commands.length} commands...`);
+    console.log(`Installing commands from ${commandEntries.length} repository entries...`);
     
-    for (const [commandName, info] of commands) {
+    for (const [repoPath, commandConfig] of commandEntries) {
       try {
-        const [user, repo] = info.repository.split('/');
+        const { user, repo, commandPath } = parseRepositoryPath(repoPath);
+        const repoKey = `${user}/${repo}`;
+        const lockInfo = lock.repositories[repoKey];
+        
+        if (!lockInfo) {
+          console.error(`✗ No lock information found for ${repoKey}`);
+          continue;
+        }
+        
         const targetDir = path.join(commandsDir, user, repo);
         await fs.ensureDir(targetDir);
         
-        const content = await getFileContent(user, repo, info.path);
-        const targetFile = path.join(targetDir, `${commandName}.md`);
-        await fs.writeFile(targetFile, content);
+        if (commandPath) {
+          // Install specific command
+          const filePath = commandPath.endsWith('.md') ? commandPath : `${commandPath}.md`;
+          const commandName = commandConfig.alias || path.basename(commandPath);
+          
+          const content = await getFileContent(user, repo, filePath);
+          const targetFile = path.join(targetDir, `${commandName}.md`);
+          await fs.writeFile(targetFile, content);
+          
+          console.log(`✓ Installed ${commandName} from ${repoKey}@${lockInfo.revision.substring(0, 7)}`);
+        } else {
+          // Install all commands from repository
+          const files = await findMarkdownFiles(user, repo);
+          
+          for (const file of files) {
+            const content = await getFileContent(user, repo, file.path);
+            const targetFile = path.join(targetDir, file.name + '.md');
+            await fs.writeFile(targetFile, content);
+            
+            console.log(`✓ Installed ${file.name} from ${repoKey}@${lockInfo.revision.substring(0, 7)}`);
+          }
+        }
         
-        console.log(`✓ Installed ${commandName} (from ${info.repository})`);
       } catch (error) {
-        console.error(`✗ Failed to install ${commandName}: ${error.message}`);
+        console.error(`✗ Failed to install from ${repoPath}: ${error.message}`);
       }
     }
     

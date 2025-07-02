@@ -55,8 +55,21 @@ jumon remove commandName
 
 ## Files
 
-- `jumon.json` - Configuration file (like package.json)
-- `jumon-lock.json` - Lock file with exact versions (like package-lock.json)
+- `jumon.json` - Configuration file listing desired commands (like package.json)
+- `jumon-lock.json` - Lock file with exact repository revisions (like package-lock.json)
+
+### Lock file structure
+
+```json
+{
+  "lockfileVersion": 2,
+  "repositories": {
+    "user/repo": {
+      "revision": "abc1234567890abcdef1234567890abcdef123456"
+    }
+  }
+}
+```
 
 ## Command Installation Paths
 

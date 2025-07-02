@@ -14,6 +14,23 @@ export function parseRepositoryPath(repoPath) {
   return { user, repo, commandPath };
 }
 
+export async function getLatestCommitHash(user, repo, branch = 'main') {
+  try {
+    const url = `https://api.github.com/repos/${user}/${repo}/branches/${branch}`;
+    const response = await axios.get(url);
+    return response.data.commit.sha;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      // Try 'master' branch if 'main' doesn't exist
+      if (branch === 'main') {
+        return await getLatestCommitHash(user, repo, 'master');
+      }
+      throw new Error(`Repository ${user}/${repo} not found or branch ${branch} does not exist`);
+    }
+    throw new Error(`Failed to fetch latest commit: ${error.message}`);
+  }
+}
+
 export async function getRepositoryContents(user, repo, path = '') {
   const url = `https://api.github.com/repos/${user}/${repo}/contents/${path}`;
   
