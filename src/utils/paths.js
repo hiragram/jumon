@@ -15,13 +15,19 @@ export function getCommandsPath(isLocal = false) {
 }
 
 export function getJumonConfigPath(isLocal = false) {
-  const basePath = isLocal ? process.cwd() : os.homedir();
-  return path.join(basePath, 'jumon.json');
+  if (isLocal) {
+    return path.join(process.cwd(), 'jumon.json');
+  } else {
+    return path.join(os.homedir(), '.jumon', 'jumon.json');
+  }
 }
 
 export function getJumonLockPath(isLocal = false) {
-  const basePath = isLocal ? process.cwd() : os.homedir();
-  return path.join(basePath, 'jumon-lock.json');
+  if (isLocal) {
+    return path.join(process.cwd(), 'jumon-lock.json');
+  } else {
+    return path.join(os.homedir(), '.jumon', 'jumon-lock.json');
+  }
 }
 
 export async function checkClaudeDir(isLocal = false) {
@@ -41,4 +47,11 @@ export async function ensureCommandsDir(isLocal = false) {
   const commandsPath = getCommandsPath(isLocal);
   await fs.ensureDir(commandsPath);
   return commandsPath;
+}
+
+export async function ensureJumonConfigDir(isLocal = false) {
+  if (!isLocal) {
+    const jumonDir = path.join(os.homedir(), '.jumon');
+    await fs.ensureDir(jumonDir);
+  }
 }

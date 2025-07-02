@@ -1,5 +1,5 @@
 import fs from 'fs-extra';
-import { getJumonConfigPath, getJumonLockPath } from './paths.js';
+import { getJumonConfigPath, getJumonLockPath, ensureJumonConfigDir } from './paths.js';
 import { parseRepositoryPath } from './github.js';
 
 export async function loadJumonConfig(isLocal = false) {
@@ -68,6 +68,7 @@ export async function loadJumonConfig(isLocal = false) {
 }
 
 export async function saveJumonConfig(config, isLocal = false) {
+  await ensureJumonConfigDir(isLocal);
   const configPath = getJumonConfigPath(isLocal);
   await fs.writeJson(configPath, config, { spaces: 2 });
 }
@@ -98,6 +99,7 @@ export async function loadJumonLock(isLocal = false) {
 }
 
 export async function saveJumonLock(lock, isLocal = false) {
+  await ensureJumonConfigDir(isLocal);
   const lockPath = getJumonLockPath(isLocal);
   await fs.writeJson(lockPath, lock, { spaces: 2 });
 }

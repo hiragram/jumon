@@ -72,8 +72,13 @@ The update command will:
 
 ## Files
 
+### Local files (project-specific)
 - `jumon.json` - Configuration file listing desired repositories and commands
 - `jumon-lock.json` - Lock file with exact repository revisions
+
+### Global files
+- `~/.jumon/jumon.json` - Global configuration file
+- `~/.jumon/jumon-lock.json` - Global lock file
 
 ### Configuration file structure (jumon.json)
 
