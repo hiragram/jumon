@@ -1,11 +1,43 @@
 {
   "name": "jumon",
   "version": "0.1.0",
+  "description": "Claude Code custom slash commands package manager",
   "main": "index.js",
+  "bin": {
+    "jumon": "./bin/jumon.js"
+  },
+  "files": [
+    "bin/",
+    "src/",
+    "README.md"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "keywords": [
+    "claude-code",
+    "cli",
+    "commands",
+    "package-manager"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hiragram/jumon.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hiragram/jumon/issues"
+  },
+  "homepage": "https://github.com/hiragram/jumon#readme",
+  "dependencies": {
+    "commander": "^11.0.0",
+    "axios": "^1.6.0",
+    "fs-extra": "^11.0.0",
+    "path": "^0.12.7"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "author": "",
   "license": "ISC",
-  "description": ""
+  "type": "module"
 }

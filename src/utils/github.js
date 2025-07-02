@@ -1,0 +1,71 @@
+import axios from 'axios';
+
+export function parseRepositoryPath(repoPath) {
+  const parts = repoPath.split('/');
+  
+  if (parts.length < 2) {
+    throw new Error('Invalid repository format. Use: user/repo or user/repo/command');
+  }
+  
+  const user = parts[0];
+  const repo = parts[1];
+  const commandPath = parts.slice(2).join('/');
+  
+  return { user, repo, commandPath };
+}
+
+export async function getRepositoryContents(user, repo, path = '') {
+  const url = `https://api.github.com/repos/${user}/${repo}/contents/${path}`;
+  
+  try {
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      throw new Error(`Repository ${user}/${repo} not found or path ${path} does not exist`);
+    }
+    throw new Error(`Failed to fetch repository contents: ${error.message}`);
+  }
+}
+
+export async function getFileContent(user, repo, filePath) {
+  try {
+    const contents = await getRepositoryContents(user, repo, filePath);
+    
+    if (contents.type !== 'file') {
+      throw new Error(`${filePath} is not a file`);
+    }
+    
+    const content = Buffer.from(contents.content, 'base64').toString('utf-8');
+    return content;
+  } catch (error) {
+    throw new Error(`Failed to get file content: ${error.message}`);
+  }
+}
+
+export async function findMarkdownFiles(user, repo, basePath = '') {
+  const files = [];
+  
+  try {
+    const contents = await getRepositoryContents(user, repo, basePath);
+    
+    for (const item of contents) {
+      if (item.type === 'file' && item.name.endsWith('.md')) {
+        const relativePath = basePath ? `${basePath}/${item.name}` : item.name;
+        files.push({
+          path: relativePath,
+          name: item.name.replace('.md', ''),
+          fullPath: item.path
+        });
+      } else if (item.type === 'dir') {
+        const subPath = basePath ? `${basePath}/${item.name}` : item.name;
+        const subFiles = await findMarkdownFiles(user, repo, subPath);
+        files.push(...subFiles);
+      }
+    }
+    
+    return files;
+  } catch (error) {
+    throw new Error(`Failed to find markdown files: ${error.message}`);
+  }
+}
