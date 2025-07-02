@@ -57,11 +57,18 @@ jumon remove commandName
 
 ```bash
 # Update all commands based on jumon.json constraints
+# Shows diff preview and asks for confirmation
 jumon update
 
 # Update global commands only
 jumon update --global
 ```
+
+The update command will:
+1. Check each repository for new commits based on version/branch/tag constraints
+2. Show a detailed diff of changes
+3. Ask for confirmation before applying changes
+4. Update the lock file with new revisions
 
 ## Files
 
