@@ -45,8 +45,8 @@ describe('GitHub Utils', () => {
     });
 
     test('should throw error for invalid format', () => {
-      expect(() => parseRepositoryPath('invalid')).toThrow('Invalid repository path format');
-      expect(() => parseRepositoryPath('')).toThrow('Invalid repository path format');
+      expect(() => parseRepositoryPath('invalid')).toThrow('Invalid repository path format. Expected user/repo or user/repo/command');
+      expect(() => parseRepositoryPath('')).toThrow('Invalid repository path format. Expected user/repo or user/repo/command');
     });
   });
 

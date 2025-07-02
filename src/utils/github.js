@@ -4,12 +4,12 @@ export function parseRepositoryPath(repoPath) {
   const parts = repoPath.split('/');
   
   if (parts.length < 2) {
-    throw new Error('Invalid repository format. Use: user/repo or user/repo/command');
+    throw new Error('Invalid repository path format. Expected user/repo or user/repo/command');
   }
   
   const user = parts[0];
   const repo = parts[1];
-  const commandPath = parts.slice(2).join('/');
+  const commandPath = parts.slice(2).join('/') || null;
   
   return { user, repo, commandPath };
 }
