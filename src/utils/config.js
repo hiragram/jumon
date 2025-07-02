@@ -23,20 +23,20 @@ export async function loadJumonConfig(isLocal = false) {
             
             if (!newConfig.repositories[repoKey]) {
               newConfig.repositories[repoKey] = {
-                commands: []
+                only: []
               };
             }
             
             if (commandPath) {
               const commandName = commandConfig.alias || commandPath.split('/').pop().replace('.md', '');
-              newConfig.repositories[repoKey].commands.push({
+              newConfig.repositories[repoKey].only.push({
                 name: commandName,
                 path: commandPath,
                 alias: commandConfig.alias || null
               });
             } else {
               // Repository-wide installation
-              newConfig.repositories[repoKey].commands = [];
+              newConfig.repositories[repoKey].only = [];
             }
           } catch (error) {
             console.warn(`Failed to migrate command entry: ${repoPath}`);
@@ -44,6 +44,16 @@ export async function loadJumonConfig(isLocal = false) {
         }
         
         return newConfig;
+      }
+      
+      // Migration: rename commands to only in existing repositories structure
+      if (content.repositories) {
+        for (const [repoKey, repoConfig] of Object.entries(content.repositories)) {
+          if (repoConfig.commands !== undefined && repoConfig.only === undefined) {
+            repoConfig.only = repoConfig.commands;
+            delete repoConfig.commands;
+          }
+        }
       }
       
       return content;
@@ -92,7 +102,7 @@ export async function saveJumonLock(lock, isLocal = false) {
   await fs.writeJson(lockPath, lock, { spaces: 2 });
 }
 
-export async function addRepositoryToConfig(user, repo, commandPath = null, alias = null, isLocal = false) {
+export async function addRepositoryToConfig(user, repo, commandPath = null, alias = null, version = null, branch = null, tag = null, isLocal = false) {
   const config = await loadJumonConfig(isLocal);
   
   if (!config.repositories) {
@@ -103,17 +113,28 @@ export async function addRepositoryToConfig(user, repo, commandPath = null, alia
   
   if (!config.repositories[repoKey]) {
     config.repositories[repoKey] = {
-      commands: []
+      only: []
     };
+  }
+  
+  // Add version/branch/tag constraints
+  if (version) {
+    config.repositories[repoKey].version = version;
+  }
+  if (branch) {
+    config.repositories[repoKey].branch = branch;
+  }
+  if (tag) {
+    config.repositories[repoKey].tag = tag;
   }
   
   if (commandPath) {
     // Add specific command
     const commandName = alias || commandPath.split('/').pop().replace('.md', '');
-    const existingCommand = config.repositories[repoKey].commands.find(cmd => cmd.path === commandPath);
+    const existingCommand = config.repositories[repoKey].only.find(cmd => cmd.path === commandPath);
     
     if (!existingCommand) {
-      config.repositories[repoKey].commands.push({
+      config.repositories[repoKey].only.push({
         name: commandName,
         path: commandPath,
         alias: alias || null
@@ -124,8 +145,8 @@ export async function addRepositoryToConfig(user, repo, commandPath = null, alia
       existingCommand.name = alias;
     }
   } else {
-    // Repository-wide installation (empty commands array means all commands)
-    config.repositories[repoKey].commands = [];
+    // Repository-wide installation (empty only array means all commands)
+    config.repositories[repoKey].only = [];
   }
   
   await saveJumonConfig(config, isLocal);

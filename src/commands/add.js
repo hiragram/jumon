@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import { parseRepositoryPath, getFileContent, findMarkdownFiles, getLatestCommitHash } from '../utils/github.js';
 import { ensureCommandsDir } from '../utils/paths.js';
-import { addCommandToConfig, addRepositoryToLock } from '../utils/config.js';
+import { addRepositoryToConfig, addRepositoryToLock } from '../utils/config.js';
 
 async function checkCommandConflict(commandName, targetDir) {
   const existingFiles = await fs.readdir(targetDir).catch(() => []);
@@ -56,7 +56,7 @@ export async function addCommand(repository, options) {
         
         const revision = await getLatestCommitHash(user, repo);
         
-        await addCommandToConfig(repository, options.alias, isLocal);
+        await addRepositoryToConfig(user, repo, filePath, options.alias, options.version, options.branch, options.tag, isLocal);
         await addRepositoryToLock(user, repo, revision, filePath, isLocal);
         
         console.log(`✓ Successfully installed command '${commandName}' to ${targetFile}`);
@@ -110,7 +110,7 @@ export async function addCommand(repository, options) {
         }
       }
       
-      await addCommandToConfig(repository, null, isLocal);
+      await addRepositoryToConfig(user, repo, null, null, options.version, options.branch, options.tag, isLocal);
       await addRepositoryToLock(user, repo, revision, null, isLocal);
       console.log(`✓ Successfully installed ${files.length} commands from ${user}/${repo}`);
       console.log(`  Repository: ${user}/${repo}@${revision.substring(0, 7)}`);

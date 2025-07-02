@@ -64,7 +64,8 @@ jumon remove commandName
 {
   "repositories": {
     "user/repo": {
-      "commands": [
+      "version": "~> 1.2.0",
+      "only": [
         {
           "name": "optimize",
           "path": "optimize.md",
@@ -78,13 +79,21 @@ jumon remove commandName
       ]
     },
     "user/another-repo": {
-      "commands": []
+      "branch": "main",
+      "only": []
+    },
+    "user/tagged-repo": {
+      "tag": "v2.1.0",
+      "only": []
     }
   }
 }
 ```
 
-- `commands`: Array of specific commands. Empty array means install all commands from repository.
+- `only`: Array of specific commands. Empty array means install all commands from repository.
+- `version`: Version constraint (e.g., "1.2.0", "~> 1.2.0", ">= 1.0.0")
+- `branch`: Specific branch to use (alternative to version/tag)
+- `tag`: Specific tag to use (alternative to version/branch)
 
 ### Lock file structure (jumon-lock.json)
 

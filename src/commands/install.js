@@ -38,9 +38,9 @@ export async function installCommand(options) {
         const targetDir = path.join(commandsDir, user, repo);
         await fs.ensureDir(targetDir);
         
-        if (repoConfig.commands && repoConfig.commands.length > 0) {
+        if (repoConfig.only && repoConfig.only.length > 0) {
           // Install specific commands defined in config
-          for (const commandDef of repoConfig.commands) {
+          for (const commandDef of repoConfig.only) {
             try {
               const filePath = commandDef.path.endsWith('.md') ? commandDef.path : `${commandDef.path}.md`;
               const content = await getFileContent(user, repo, filePath);
