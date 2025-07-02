@@ -5,6 +5,7 @@ import { addCommand } from '../src/commands/add.js';
 import { installCommand } from '../src/commands/install.js';
 import { listCommand } from '../src/commands/list.js';
 import { removeCommand } from '../src/commands/remove.js';
+import { updateCommand } from '../src/commands/update.js';
 
 const program = new Command();
 
@@ -44,5 +45,12 @@ program
   .option('-g, --global', 'Remove from global commands')
   .option('-l, --local', 'Remove from local project [default]')
   .action(removeCommand);
+
+program
+  .command('update')
+  .description('Update commands to latest versions based on jumon.json constraints')
+  .option('-g, --global', 'Update global commands')
+  .option('-l, --local', 'Update local commands [default]')
+  .action(updateCommand);
 
 program.parse();

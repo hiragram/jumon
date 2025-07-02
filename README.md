@@ -53,6 +53,16 @@ jumon list --global
 jumon remove commandName
 ```
 
+### Update commands
+
+```bash
+# Update all commands based on jumon.json constraints
+jumon update
+
+# Update global commands only
+jumon update --global
+```
+
 ## Files
 
 - `jumon.json` - Configuration file listing desired repositories and commands
