@@ -15,17 +15,17 @@ program
 
 program
   .command('add <repository>')
-  .description('Add a command from GitHub repository (user/repo/command)')
-  .option('-l, --local', 'Install to local project (.claude/commands/)')
+  .description('Add a command from GitHub repository (user/repo/command) - defaults to local')
   .option('-g, --global', 'Install to global commands (~/.claude/commands/)')
+  .option('-l, --local', 'Install to local project (.claude/commands/) [default]')
   .option('-a, --alias <name>', 'Install with a different name')
   .action(addCommand);
 
 program
   .command('install')
-  .description('Install all commands from jumon-lock.json')
-  .option('-l, --local', 'Install to local project')
+  .description('Install all commands from jumon-lock.json - defaults to local')
   .option('-g, --global', 'Install to global commands')
+  .option('-l, --local', 'Install to local project [default]')
   .action(installCommand);
 
 program
@@ -37,9 +37,9 @@ program
 
 program
   .command('remove <command>')
-  .description('Remove an installed command')
-  .option('-l, --local', 'Remove from local project')
+  .description('Remove an installed command - defaults to local')
   .option('-g, --global', 'Remove from global commands')
+  .option('-l, --local', 'Remove from local project [default]')
   .action(removeCommand);
 
 program.parse();

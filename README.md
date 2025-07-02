@@ -13,7 +13,7 @@ npm install -g jumon
 ### Add a command from GitHub repository
 
 ```bash
-# Add specific command
+# Add specific command (defaults to local)
 jumon add user/repo/commandName
 
 # Add all commands from repository
@@ -22,9 +22,11 @@ jumon add user/repo
 # Add with alias
 jumon add user/repo/commandName --alias my-command
 
-# Add to local project only
-jumon add user/repo/commandName --local
+# Add to global commands
+jumon add user/repo/commandName --global
 ```
+
+**Note**: Commands are installed locally by default. The `.claude` directory must exist in the target location.
 
 ### Install commands from jumon-lock.json
 
@@ -58,7 +60,7 @@ jumon remove commandName
 
 ## Command Installation Paths
 
-- Global: `~/.claude/commands/jumon/user/repo/`
-- Local: `.claude/commands/jumon/user/repo/`
+- **Local (default)**: `.claude/commands/jumon/user/repo/` - accessible as `/project:commandName`
+- **Global**: `~/.claude/commands/jumon/user/repo/` - accessible as `/user:commandName`
 
-Commands are accessible in Claude Code as `/project:commandName` or `/user:commandName`
+**Requirements**: The `.claude` directory must exist in the target location before installing commands.

@@ -28,7 +28,7 @@ async function checkCommandConflict(commandName, targetDir) {
 
 export async function addCommand(repository, options) {
   try {
-    const isLocal = options.local && !options.global;
+    const isLocal = !options.global;
     const { user, repo, commandPath } = parseRepositoryPath(repository);
     
     console.log(`Adding command from ${user}/${repo}${commandPath ? `/${commandPath}` : ''}...`);

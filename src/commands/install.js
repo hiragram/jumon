@@ -6,7 +6,7 @@ import { loadJumonLock } from '../utils/config.js';
 
 export async function installCommand(options) {
   try {
-    const isLocal = options.local && !options.global;
+    const isLocal = !options.global;
     const lock = await loadJumonLock(isLocal);
     
     if (!lock.commands || Object.keys(lock.commands).length === 0) {

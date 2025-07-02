@@ -49,7 +49,7 @@ async function findAndRemoveCommand(commandName, commandsPath) {
 
 export async function removeCommand(commandName, options) {
   try {
-    const isLocal = options.local && !options.global;
+    const isLocal = !options.global;
     const commandsPath = getCommandsPath(isLocal);
     
     if (!(await fs.pathExists(commandsPath))) {

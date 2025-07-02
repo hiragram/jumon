@@ -55,12 +55,12 @@ async function listCommandsInDirectory(commandsPath, title) {
 
 export async function listCommand(options) {
   try {
-    if (options.local && !options.global) {
-      const localPath = getLocalCommandsPath();
-      await listCommandsInDirectory(localPath, 'Local Commands');
-    } else if (options.global && !options.local) {
+    if (options.global && !options.local) {
       const globalPath = getGlobalCommandsPath();
       await listCommandsInDirectory(globalPath, 'Global Commands');
+    } else if (options.local && !options.global) {
+      const localPath = getLocalCommandsPath();
+      await listCommandsInDirectory(localPath, 'Local Commands');
     } else {
       const localPath = getLocalCommandsPath();
       const globalPath = getGlobalCommandsPath();

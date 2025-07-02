@@ -24,7 +24,20 @@ export function getJumonLockPath(isLocal = false) {
   return path.join(basePath, 'jumon-lock.json');
 }
 
+export async function checkClaudeDir(isLocal = false) {
+  const basePath = isLocal ? process.cwd() : os.homedir();
+  const claudeDir = path.join(basePath, '.claude');
+  
+  if (!(await fs.pathExists(claudeDir))) {
+    const location = isLocal ? 'current directory' : 'home directory';
+    throw new Error(`Claude Code directory not found in ${location}. Please ensure .claude directory exists.`);
+  }
+  
+  return claudeDir;
+}
+
 export async function ensureCommandsDir(isLocal = false) {
+  await checkClaudeDir(isLocal);
   const commandsPath = getCommandsPath(isLocal);
   await fs.ensureDir(commandsPath);
   return commandsPath;
