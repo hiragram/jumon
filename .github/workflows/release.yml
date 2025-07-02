@@ -8,20 +8,24 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: write
 
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - name: Release Please
         id: release
-        uses: google-github-actions/release-please-action@v4
+        uses: googleapis/release-please-action@v4
         with:
           release-type: node
-          package-name: jumon
 
   publish:
     needs: release-please
