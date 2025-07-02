@@ -2,28 +2,24 @@
 
 Claude Code custom slash commands package manager for easy sharing and management of commands
 
-## Installation
-
-```bash
-npm install -g jumon
-```
-
 ## Usage
+
+No installation required! Use `npx` to run jumon commands directly:
 
 ### Add a command from GitHub repository
 
 ```bash
 # Add specific command (defaults to local)
-jumon add user/repo/commandName
+npx jumon add user/repo/commandName
 
 # Add all commands from repository
-jumon add user/repo
+npx jumon add user/repo
 
 # Add with alias
-jumon add user/repo/commandName --alias my-command
+npx jumon add user/repo/commandName --alias my-command
 
 # Add to global commands
-jumon add user/repo/commandName --global
+npx jumon add user/repo/commandName --global
 ```
 
 **Note**: Commands are installed locally by default. The `.claude` directory must exist in the target location.
@@ -31,26 +27,26 @@ jumon add user/repo/commandName --global
 ### Install commands from jumon-lock.json
 
 ```bash
-jumon install
+npx jumon install
 ```
 
 ### List installed commands
 
 ```bash
 # List all commands
-jumon list
+npx jumon list
 
 # List local commands only
-jumon list --local
+npx jumon list --local
 
 # List global commands only
-jumon list --global
+npx jumon list --global
 ```
 
 ### Remove a command
 
 ```bash
-jumon remove commandName
+npx jumon remove commandName
 ```
 
 ### Update commands
@@ -58,10 +54,10 @@ jumon remove commandName
 ```bash
 # Update all commands based on jumon.json constraints
 # Shows diff preview and asks for confirmation
-jumon update
+npx jumon update
 
 # Update global commands only
-jumon update --global
+npx jumon update --global
 ```
 
 The update command will:
