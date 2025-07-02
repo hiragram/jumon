@@ -1,5 +1,6 @@
 import fs from 'fs-extra';
 import { getJumonConfigPath, getJumonLockPath } from './paths.js';
+import { parseRepositoryPath } from './github.js';
 
 export async function loadJumonConfig(isLocal = false) {
   const configPath = getJumonConfigPath(isLocal);
@@ -7,6 +8,44 @@ export async function loadJumonConfig(isLocal = false) {
   try {
     if (await fs.pathExists(configPath)) {
       const content = await fs.readJson(configPath);
+      
+      // Migration: convert old structure to new structure
+      if (content.commands && !content.repositories) {
+        const newConfig = {
+          repositories: {}
+        };
+        
+        // Convert old commands structure to new repositories structure
+        for (const [repoPath, commandConfig] of Object.entries(content.commands)) {
+          try {
+            const { user, repo, commandPath } = parseRepositoryPath(repoPath);
+            const repoKey = `${user}/${repo}`;
+            
+            if (!newConfig.repositories[repoKey]) {
+              newConfig.repositories[repoKey] = {
+                commands: []
+              };
+            }
+            
+            if (commandPath) {
+              const commandName = commandConfig.alias || commandPath.split('/').pop().replace('.md', '');
+              newConfig.repositories[repoKey].commands.push({
+                name: commandName,
+                path: commandPath,
+                alias: commandConfig.alias || null
+              });
+            } else {
+              // Repository-wide installation
+              newConfig.repositories[repoKey].commands = [];
+            }
+          } catch (error) {
+            console.warn(`Failed to migrate command entry: ${repoPath}`);
+          }
+        }
+        
+        return newConfig;
+      }
+      
       return content;
     }
   } catch (error) {
@@ -14,9 +53,7 @@ export async function loadJumonConfig(isLocal = false) {
   }
   
   return {
-    name: isLocal ? 'local-commands' : 'global-commands',
-    version: '1.0.0',
-    commands: {}
+    repositories: {}
   };
 }
 
@@ -55,20 +92,53 @@ export async function saveJumonLock(lock, isLocal = false) {
   await fs.writeJson(lockPath, lock, { spaces: 2 });
 }
 
-export async function addCommandToConfig(repoPath, alias, isLocal = false) {
+export async function addRepositoryToConfig(user, repo, commandPath = null, alias = null, isLocal = false) {
   const config = await loadJumonConfig(isLocal);
   
-  if (!config.commands) {
-    config.commands = {};
+  if (!config.repositories) {
+    config.repositories = {};
   }
   
-  if (alias) {
-    config.commands[repoPath] = { alias };
+  const repoKey = `${user}/${repo}`;
+  
+  if (!config.repositories[repoKey]) {
+    config.repositories[repoKey] = {
+      commands: []
+    };
+  }
+  
+  if (commandPath) {
+    // Add specific command
+    const commandName = alias || commandPath.split('/').pop().replace('.md', '');
+    const existingCommand = config.repositories[repoKey].commands.find(cmd => cmd.path === commandPath);
+    
+    if (!existingCommand) {
+      config.repositories[repoKey].commands.push({
+        name: commandName,
+        path: commandPath,
+        alias: alias || null
+      });
+    } else if (alias && existingCommand.alias !== alias) {
+      // Update alias if provided
+      existingCommand.alias = alias;
+      existingCommand.name = alias;
+    }
   } else {
-    config.commands[repoPath] = {};
+    // Repository-wide installation (empty commands array means all commands)
+    config.repositories[repoKey].commands = [];
   }
   
   await saveJumonConfig(config, isLocal);
+}
+
+// Legacy function for backward compatibility
+export async function addCommandToConfig(repoPath, alias, isLocal = false) {
+  try {
+    const { user, repo, commandPath } = parseRepositoryPath(repoPath);
+    await addRepositoryToConfig(user, repo, commandPath, alias, isLocal);
+  } catch (error) {
+    console.warn(`Failed to add command to config: ${error.message}`);
+  }
 }
 
 export async function addRepositoryToLock(user, repo, revision, commandPath = null, isLocal = false) {

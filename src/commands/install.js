@@ -10,8 +10,8 @@ export async function installCommand(options) {
     const config = await loadJumonConfig(isLocal);
     const lock = await loadJumonLock(isLocal);
     
-    if (!config.commands || Object.keys(config.commands).length === 0) {
-      console.log('No commands to install (jumon.json is empty or not found)');
+    if (!config.repositories || Object.keys(config.repositories).length === 0) {
+      console.log('No repositories to install (jumon.json is empty or not found)');
       return;
     }
     
@@ -21,14 +21,13 @@ export async function installCommand(options) {
     }
     
     const commandsDir = await ensureCommandsDir(isLocal);
-    const commandEntries = Object.entries(config.commands);
+    const repositoryEntries = Object.entries(config.repositories);
     
-    console.log(`Installing commands from ${commandEntries.length} repository entries...`);
+    console.log(`Installing commands from ${repositoryEntries.length} repositories...`);
     
-    for (const [repoPath, commandConfig] of commandEntries) {
+    for (const [repoKey, repoConfig] of repositoryEntries) {
       try {
-        const { user, repo, commandPath } = parseRepositoryPath(repoPath);
-        const repoKey = `${user}/${repo}`;
+        const [user, repo] = repoKey.split('/');
         const lockInfo = lock.repositories[repoKey];
         
         if (!lockInfo) {
@@ -39,18 +38,22 @@ export async function installCommand(options) {
         const targetDir = path.join(commandsDir, user, repo);
         await fs.ensureDir(targetDir);
         
-        if (commandPath) {
-          // Install specific command
-          const filePath = commandPath.endsWith('.md') ? commandPath : `${commandPath}.md`;
-          const commandName = commandConfig.alias || path.basename(commandPath);
-          
-          const content = await getFileContent(user, repo, filePath);
-          const targetFile = path.join(targetDir, `${commandName}.md`);
-          await fs.writeFile(targetFile, content);
-          
-          console.log(`✓ Installed ${commandName} from ${repoKey}@${lockInfo.revision.substring(0, 7)}`);
+        if (repoConfig.commands && repoConfig.commands.length > 0) {
+          // Install specific commands defined in config
+          for (const commandDef of repoConfig.commands) {
+            try {
+              const filePath = commandDef.path.endsWith('.md') ? commandDef.path : `${commandDef.path}.md`;
+              const content = await getFileContent(user, repo, filePath);
+              const targetFile = path.join(targetDir, `${commandDef.name}.md`);
+              await fs.writeFile(targetFile, content);
+              
+              console.log(`✓ Installed ${commandDef.name} from ${repoKey}@${lockInfo.revision.substring(0, 7)}`);
+            } catch (error) {
+              console.error(`✗ Failed to install ${commandDef.name}: ${error.message}`);
+            }
+          }
         } else {
-          // Install commands from repository (all or only specified ones)
+          // Install all commands from repository (or only those specified in lock file)
           const files = await findMarkdownFiles(user, repo);
           const onlyCommands = lockInfo.only || [];
           
@@ -72,7 +75,7 @@ export async function installCommand(options) {
         }
         
       } catch (error) {
-        console.error(`✗ Failed to install from ${repoPath}: ${error.message}`);
+        console.error(`✗ Failed to install from ${repoKey}: ${error.message}`);
       }
     }
     

@@ -55,10 +55,38 @@ jumon remove commandName
 
 ## Files
 
-- `jumon.json` - Configuration file listing desired commands (like package.json)
-- `jumon-lock.json` - Lock file with exact repository revisions (like package-lock.json)
+- `jumon.json` - Configuration file listing desired repositories and commands
+- `jumon-lock.json` - Lock file with exact repository revisions
 
-### Lock file structure
+### Configuration file structure (jumon.json)
+
+```json
+{
+  "repositories": {
+    "user/repo": {
+      "commands": [
+        {
+          "name": "optimize",
+          "path": "optimize.md",
+          "alias": null
+        },
+        {
+          "name": "my-component",
+          "path": "frontend/component.md", 
+          "alias": "my-component"
+        }
+      ]
+    },
+    "user/another-repo": {
+      "commands": []
+    }
+  }
+}
+```
+
+- `commands`: Array of specific commands. Empty array means install all commands from repository.
+
+### Lock file structure (jumon-lock.json)
 
 ```json
 {
@@ -66,7 +94,7 @@ jumon remove commandName
   "repositories": {
     "user/repo": {
       "revision": "abc1234567890abcdef1234567890abcdef123456",
-      "only": ["command1", "command2"]
+      "only": ["optimize", "my-component"]
     },
     "user/another-repo": {
       "revision": "def7890abcdef1234567890abcdef123456789abc",
