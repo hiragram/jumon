@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import { getFileContent, findMarkdownFiles } from '../utils/github.js';
 import { ensureCommandsDir } from '../utils/paths.js';
-import { loadJumonLock, loadJumonConfig } from '../utils/config.js';
+import { loadJumonLock, loadJumonConfig, saveJumonLock } from '../utils/config.js';
 
 export async function installCommand(options) {
   try {
@@ -34,6 +34,7 @@ export async function installCommand(options) {
         await fs.ensureDir(targetDir);
         
         let installedCommands = 0;
+        let installedCommandNames = [];
         
         if (repoConfig.only && repoConfig.only.length > 0) {
           // Install specific commands
@@ -47,6 +48,7 @@ export async function installCommand(options) {
               await fs.writeFile(targetFile, content);
               console.log(`✓ Installed ${commandName}`);
               installedCommands++;
+              installedCommandNames.push(commandName);
             } catch (error) {
               console.error(`✗ Failed to install ${commandDef.name}: ${error.message}`);
             }
@@ -64,6 +66,7 @@ export async function installCommand(options) {
                 await fs.writeFile(targetFile, content);
                 console.log(`✓ Installed ${file.name}`);
                 installedCommands++;
+                installedCommandNames.push(file.name);
               } catch (error) {
                 console.error(`✗ Failed to install ${file.name}: ${error.message}`);
               }
@@ -73,11 +76,17 @@ export async function installCommand(options) {
           }
         }
         
+        // Update lock file with actually installed commands
+        lock.repositories[repoKey].only = installedCommandNames;
+        
         totalInstalled += installedCommands;
       } catch (error) {
         console.error(`✗ Failed to process repository ${repoKey}: ${error.message}`);
       }
     }
+    
+    // Save updated lock file
+    await saveJumonLock(lock, isLocal);
     
     console.log(`✓ Installed ${totalInstalled} commands from ${repositoryCount} repositories`);
   } catch (error) {
