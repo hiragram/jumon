@@ -48,7 +48,9 @@ async function removeCommandFromLock(commandName, repoKey, lock) {
   
   const repoLock = lock.repositories[repoKey];
   if (repoLock.only && repoLock.only.length > 0) {
-    const commandIndex = repoLock.only.indexOf(commandName);
+    const commandIndex = repoLock.only.findIndex(item => 
+      typeof item === 'string' ? item === commandName : item.name === commandName
+    );
     if (commandIndex !== -1) {
       repoLock.only.splice(commandIndex, 1);
       

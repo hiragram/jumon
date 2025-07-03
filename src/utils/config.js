@@ -119,8 +119,15 @@ export async function addRepositoryToLock(user, repo, revision, commandPath = nu
   // Add new command to "only" list if specified
   if (commandPath) {
     const commandName = commandPath.split('/').pop().replace('.md', '');
-    if (!repoEntry.only.includes(commandName)) {
-      repoEntry.only.push(commandName);
+    const commandExists = repoEntry.only.some(item => 
+      typeof item === 'string' ? item === commandName : item.name === commandName
+    );
+    if (!commandExists) {
+      repoEntry.only.push({
+        name: commandName,
+        path: commandPath,
+        alias: null
+      });
     }
   } else if (!existingRepo || !existingRepo.only || existingRepo.only.length === 0) {
     // If no specific command and no existing "only" list, keep empty (all commands)

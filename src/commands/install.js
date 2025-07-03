@@ -85,7 +85,11 @@ export async function installCommand(options) {
         
         // Update lock file with actually installed commands
         if (lock.repositories[repoKey]) {
-          lock.repositories[repoKey].only = installedCommandNames;
+          lock.repositories[repoKey].only = installedCommandNames.map(name => ({
+            name: name,
+            path: `${name}.md`,
+            alias: null
+          }));
         } else {
           // This should not happen normally, but let's be safe
           logWarning(`Lock file entry for ${repoKey} not found, skipping lock update`);
