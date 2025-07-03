@@ -41,6 +41,9 @@ export async function getRepositoryContents(user, repo, path = '', branch = 'mai
     return response.data;
   } catch (error) {
     if (error.response?.status === 404) {
+      if (branch !== 'main') {
+        throw new Error(`Repository ${user}/${repo} not found, path ${path} does not exist, or branch '${branch}' does not exist`);
+      }
       throw new Error(`Repository ${user}/${repo} not found or path ${path} does not exist`);
     }
     throw new Error(`Failed to fetch repository contents: ${error.message}`);
