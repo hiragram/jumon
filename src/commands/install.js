@@ -55,7 +55,7 @@ export async function installCommand(options) {
               await fs.writeFile(targetFile, content);
               logSuccess(`Installed ${commandName}`);
               installedCommands++;
-              installedCommandNames.push(commandName);
+              installedCommandNames.push(commandDef.name);
             } catch (error) {
               logError(`Failed to install ${commandDef.name}: ${error.message}`);
             }
@@ -85,11 +85,24 @@ export async function installCommand(options) {
         
         // Update lock file with actually installed commands
         if (lock.repositories[repoKey]) {
-          lock.repositories[repoKey].only = installedCommandNames.map(name => ({
-            name: name,
-            path: `${name}.md`,
-            alias: null
-          }));
+          const config = await loadCccscConfig(isLocal);
+          const repoConfig = config.repositories?.[repoKey];
+          
+          if (repoConfig?.only && repoConfig.only.length > 0) {
+            // Use config information to preserve alias
+            lock.repositories[repoKey].only = repoConfig.only.map(cmd => ({
+              name: cmd.name,
+              path: cmd.path,
+              alias: cmd.alias
+            }));
+          } else {
+            // Fallback for commands installed without config
+            lock.repositories[repoKey].only = installedCommandNames.map(name => ({
+              name: name,
+              path: `${name}.md`,
+              alias: null
+            }));
+          }
         } else {
           // This should not happen normally, but let's be safe
           logWarning(`Lock file entry for ${repoKey} not found, skipping lock update`);

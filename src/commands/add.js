@@ -140,7 +140,7 @@ export async function addCommand(repository, options) {
         const revision = await resolveRepositoryRevision(user, repo, { branch });
         
         await addRepositoryToConfig(user, repo, filePath, options.alias, branch, isLocal);
-        await addRepositoryToLock(user, repo, revision, filePath, isLocal);
+        await addRepositoryToLock(user, repo, revision, filePath, options.alias, isLocal);
         
         console.log(`✓ Successfully installed command '${commandName}' to ${targetFile}`);
         console.log(`  Repository: ${user}/${repo}@${revision.substring(0, 7)}`);
@@ -195,7 +195,7 @@ export async function addCommand(repository, options) {
       }
       
       await addRepositoryToConfig(user, repo, null, null, branch, isLocal);
-      await addRepositoryToLock(user, repo, revision, null, isLocal);
+      await addRepositoryToLock(user, repo, revision, null, null, isLocal);
       console.log(`✓ Successfully installed ${files.length} commands from ${user}/${repo}`);
       console.log(`  Repository: ${user}/${repo}@${revision.substring(0, 7)}`);
     }

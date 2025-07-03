@@ -72,19 +72,18 @@ export async function addRepositoryToConfig(user, repo, commandPath = null, alia
   
   if (commandPath) {
     // Add specific command
-    const commandName = alias || commandPath.split('/').pop().replace('.md', '');
+    const originalName = commandPath.split('/').pop().replace('.md', '');
     const existingCommand = config.repositories[repoKey].only.find(cmd => cmd.path === commandPath);
     
     if (!existingCommand) {
       config.repositories[repoKey].only.push({
-        name: commandName,
+        name: originalName,
         path: commandPath,
         alias: alias || null
       });
-    } else if (alias && existingCommand.alias !== alias) {
-      // Update alias if provided
-      existingCommand.alias = alias;
-      existingCommand.name = alias;
+    } else if (alias !== existingCommand.alias) {
+      // Update alias if provided or changed
+      existingCommand.alias = alias || null;
     }
   } else {
     // Repository-wide installation (empty only array means all commands)
@@ -95,7 +94,7 @@ export async function addRepositoryToConfig(user, repo, commandPath = null, alia
 }
 
 
-export async function addRepositoryToLock(user, repo, revision, commandPath = null, isLocal = false) {
+export async function addRepositoryToLock(user, repo, revision, commandPath = null, alias = null, isLocal = false) {
   const lock = await loadCccscLock(isLocal);
   
   if (!lock.repositories) {
@@ -119,14 +118,23 @@ export async function addRepositoryToLock(user, repo, revision, commandPath = nu
   // Add new command to "only" list if specified
   if (commandPath) {
     const commandName = commandPath.split('/').pop().replace('.md', '');
-    const commandExists = repoEntry.only.some(item => 
+    const existingCommandIndex = repoEntry.only.findIndex(item => 
       typeof item === 'string' ? item === commandName : item.name === commandName
     );
-    if (!commandExists) {
+    
+    if (existingCommandIndex !== -1) {
+      // Update existing command with new alias
+      repoEntry.only[existingCommandIndex] = {
+        name: commandName,
+        path: commandPath,
+        alias: alias
+      };
+    } else {
+      // Add new command
       repoEntry.only.push({
         name: commandName,
         path: commandPath,
-        alias: null
+        alias: alias
       });
     }
   } else if (!existingRepo || !existingRepo.only || existingRepo.only.length === 0) {
