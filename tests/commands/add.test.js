@@ -144,9 +144,8 @@ describe('Add Command', () => {
 
       const options = { global: false };
 
-      await addCommand('testuser/testrepo/test', options);
+      await expect(addCommand('testuser/testrepo/test', options)).rejects.toThrow('process.exit unexpectedly called with "1"');
 
-      expect(processExitSpy).toHaveBeenCalledWith(1);
       expect(console.error).toHaveBeenCalledWith("Error: Command 'test' already exists at /test/commands/existing/test.md");
     });
 
@@ -219,9 +218,7 @@ describe('Add Command', () => {
 
       const options = { global: false };
 
-      await addCommand('testuser/testrepo/test', options);
-
-      expect(processExitSpy).toHaveBeenCalledWith(1);
+      await expect(addCommand('testuser/testrepo/test', options)).rejects.toThrow('process.exit unexpectedly called with "1"');
       expect(console.error).toHaveBeenCalledWith('Error: File not found');
     });
 
@@ -236,9 +233,7 @@ describe('Add Command', () => {
 
       const options = { global: false };
 
-      await addCommand('testuser/testrepo', options);
-
-      expect(processExitSpy).toHaveBeenCalledWith(1);
+      await expect(addCommand('testuser/testrepo', options)).rejects.toThrow('process.exit unexpectedly called with "1"');
       expect(console.error).toHaveBeenCalledWith('No markdown files found in testuser/testrepo');
     });
 
@@ -261,9 +256,7 @@ describe('Add Command', () => {
 
       const options = { global: false };
 
-      await addCommand('testuser/testrepo', options);
-
-      expect(processExitSpy).toHaveBeenCalledWith(1);
+      await expect(addCommand('testuser/testrepo', options)).rejects.toThrow('process.exit unexpectedly called with "1"');
       expect(console.error).toHaveBeenCalledWith('Error: The following commands already exist:');
     });
 
@@ -272,9 +265,7 @@ describe('Add Command', () => {
 
       const options = { global: false };
 
-      await addCommand('testuser/testrepo/test', options);
-
-      expect(processExitSpy).toHaveBeenCalledWith(1);
+      await expect(addCommand('testuser/testrepo/test', options)).rejects.toThrow('process.exit unexpectedly called with "1"');
       expect(console.error).toHaveBeenCalledWith('Error: Permission denied');
     });
   });

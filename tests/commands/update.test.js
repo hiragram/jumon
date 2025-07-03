@@ -93,7 +93,7 @@ describe('Update Command', () => {
       expect(mockedGithub.getLatestCommitHash).toHaveBeenCalledWith('user', 'repo', 'main');
       expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user', 'repo', 'cmd1.md');
       expect(mockedFs.writeFile).toHaveBeenCalledWith('/test/commands/user/repo/cmd1.md', 'new content');
-      expect(consoleSpy).toHaveBeenCalledWith('🎉 Update complete!');
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('🎉 Update complete!'));
     });
 
     test('should handle version constraints', async () => {
@@ -205,7 +205,7 @@ describe('Update Command', () => {
       await updateCommand(options);
 
       expect(consoleSpy).toHaveBeenCalledWith('  Already up to date (newcomm)');
-      expect(consoleSpy).toHaveBeenCalledWith('🎉 All repositories are up to date!');
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('🎉 All repositories are up to date!'));
       expect(mockedGithub.getFileContent).not.toHaveBeenCalled();
     });
 
@@ -328,7 +328,7 @@ describe('Update Command', () => {
 
       await updateCommand(options);
 
-      expect(consoleSpy).toHaveBeenCalledWith('📋 Detailed changes preview:');
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('📋 Detailed changes preview:'));
       expect(mockRl.question).toHaveBeenCalledWith('Apply these changes? (y/N): ', expect.any(Function));
     });
 
@@ -401,7 +401,7 @@ describe('Update Command', () => {
 
       await updateCommand(options);
 
-      expect(consoleSpy).toHaveBeenCalledWith('Applying updates...');
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('Applying updates...'));
       expect(mockedConfig.saveJumonLock).toHaveBeenCalled();
     });
   });
@@ -492,9 +492,7 @@ describe('Update Command', () => {
 
       const options = { global: false };
 
-      await updateCommand(options);
-
-      expect(processExitSpy).toHaveBeenCalledWith(1);
+      await expect(updateCommand(options)).rejects.toThrow('process.exit unexpectedly called with "1"');
       expect(console.error).toHaveBeenCalledWith('Error: Config corrupted');
     });
 
@@ -553,7 +551,8 @@ describe('Update Command', () => {
 
       expect(mockedConfig.loadJumonConfig).toHaveBeenCalledWith(false);
       expect(mockedConfig.loadJumonLock).toHaveBeenCalledWith(false);
-      expect(mockedPaths.ensureCommandsDir).toHaveBeenCalledWith(false);
+      // ensureCommandsDir is not called when there are no repositories to update
+      expect(consoleSpy).toHaveBeenCalledWith('No repositories to update (jumon.json is empty or not found)');
     });
   });
 

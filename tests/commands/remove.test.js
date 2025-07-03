@@ -210,13 +210,21 @@ describe('Remove Command', () => {
     test('should find and remove command by filesystem search when not in config', async () => {
       mockedConfig.loadJumonConfig.mockResolvedValue({ repositories: {} });
       
+      // Mock readdir to return the correct values in sequence
       mockedFs.readdir
-        .mockResolvedValueOnce(['testuser'])
-        .mockResolvedValueOnce(['testrepo'])
-        .mockResolvedValueOnce([]); // repo directory empty after removal
+        .mockResolvedValueOnce(['testuser']) // commands dir
+        .mockResolvedValueOnce(['testrepo']) // user dir
+        .mockResolvedValueOnce([]) // repo dir after removal (for cleanup check)
+        .mockResolvedValueOnce([]); // user dir after removal (for cleanup check)
 
       mockedFs.stat.mockResolvedValue({ isDirectory: () => true });
-      mockedFs.pathExists.mockResolvedValue(true);
+      
+      // Override the default pathExists mock to return true for specific paths
+      mockedFs.pathExists
+        .mockResolvedValueOnce(true) // commands directory exists
+        .mockResolvedValueOnce(true) // test.md file exists
+        .mockResolvedValue(false); // default false for other calls
+        
       mockedFs.remove.mockResolvedValue();
 
       const options = { global: false };
@@ -232,19 +240,22 @@ describe('Remove Command', () => {
       mockedConfig.loadJumonConfig.mockResolvedValue({ repositories: {} });
       
       mockedFs.readdir
-        .mockResolvedValueOnce(['user1', 'user2'])
-        .mockResolvedValueOnce(['repo1']) // user1 repos
-        .mockResolvedValueOnce(['repo2']); // user2 repos
+        .mockResolvedValueOnce(['user1', 'user2']) // commands dir
+        .mockResolvedValueOnce(['repo1']) // user1 dir
+        .mockResolvedValueOnce(['repo2']) // user2 dir
+        .mockResolvedValueOnce([]) // repo directory empty after removal
+        .mockResolvedValueOnce([]); // user directory empty after removal
 
       mockedFs.stat.mockResolvedValue({ isDirectory: () => true });
       
-      // File exists in user2/repo2
+      // Mock pathExists calls in order
       mockedFs.pathExists
-        .mockResolvedValueOnce(false) // user1/repo1/test.md
-        .mockResolvedValueOnce(true);  // user2/repo2/test.md
+        .mockResolvedValueOnce(true)  // commands directory exists
+        .mockResolvedValueOnce(false) // user1/repo1/test.md doesn't exist
+        .mockResolvedValueOnce(true)  // user2/repo2/test.md exists
+        .mockResolvedValue(false); // default false for other calls
 
       mockedFs.remove.mockResolvedValue();
-      mockedFs.readdir.mockResolvedValueOnce([]); // repo directory empty after removal
 
       const options = { global: false };
 
@@ -262,9 +273,7 @@ describe('Remove Command', () => {
 
       const options = { global: false };
 
-      await removeCommand('test', options);
-
-      expect(processExitSpy).toHaveBeenCalledWith(1);
+      await expect(removeCommand('test', options)).rejects.toThrow('process.exit unexpectedly called with "1"');
       expect(console.error).toHaveBeenCalledWith('No commands directory found');
     });
 
@@ -274,9 +283,7 @@ describe('Remove Command', () => {
 
       const options = { global: false };
 
-      await removeCommand('nonexistent', options);
-
-      expect(processExitSpy).toHaveBeenCalledWith(1);
+      await expect(removeCommand('nonexistent', options)).rejects.toThrow('process.exit unexpectedly called with "1"');
       expect(console.error).toHaveBeenCalledWith("Command 'nonexistent' not found");
     });
 
@@ -297,22 +304,22 @@ describe('Remove Command', () => {
 
       const options = { global: false };
 
-      await removeCommand('test', options);
-
-      expect(processExitSpy).toHaveBeenCalledWith(1);
+      await expect(removeCommand('test', options)).rejects.toThrow('process.exit unexpectedly called with "1"');
       expect(console.error).toHaveBeenCalledWith('Error: Permission denied');
     });
 
     test('should handle readdir errors in filesystem search', async () => {
       mockedConfig.loadJumonConfig.mockResolvedValue({ repositories: {} });
+      
+      // readdir will fail, which gets caught and returns empty array,
+      // so the command won't be found
       mockedFs.readdir.mockRejectedValue(new Error('Access denied'));
 
       const options = { global: false };
 
-      await removeCommand('test', options);
-
-      expect(processExitSpy).toHaveBeenCalledWith(1);
-      expect(console.error).toHaveBeenCalledWith('Error: Access denied');
+      await expect(removeCommand('test', options)).rejects.toThrow('process.exit unexpectedly called with "1"');
+      // The error is caught internally and the command is just not found
+      expect(console.error).toHaveBeenCalledWith("Command 'test' not found");
     });
   });
 

@@ -115,7 +115,8 @@ export async function addCommand(repository, options) {
     
     if (commandPath) {
       const filePath = commandPath.endsWith('.md') ? commandPath : `${commandPath}.md`;
-      const commandName = options.alias || path.basename(commandPath);
+      const baseCommandName = path.basename(commandPath).replace(/\.md$/, '');
+      const commandName = options.alias || baseCommandName;
       
       const commandsDir = await ensureCommandsDir(isLocal);
       const targetDir = path.join(commandsDir, user, repo);
