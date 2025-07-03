@@ -4,7 +4,7 @@ import { resolveRepositoryRevision } from '../utils/github.js';
 import { ensureCommandsDir } from '../utils/paths.js';
 import { loadCccscConfig, loadCccscLock, saveCccscLock } from '../utils/config.js';
 import { parseRepositoryKey, validateRepositoryConfig } from '../utils/repository.js';
-import { handleCommandError, logError, logWarning } from '../utils/errors.js';
+import { handleCommandError, logError } from '../utils/errors.js';
 import { installCommand } from './install.js';
 
 

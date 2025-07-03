@@ -52,10 +52,10 @@ export async function writeJsonFile(filePath, data, options = { spaces: 2 }) {
 /**
  * Safely read a text file with error handling
  */
-export async function readTextFile(filePath, encoding = 'utf8') {
+export async function readTextFile(filePath) {
   try {
     if (await fs.pathExists(filePath)) {
-      return await fs.readFile(filePath, encoding);
+      return await fs.readFile(filePath, 'utf8');
     }
     throw CommandError.fileError(`File not found: ${filePath}`, { filePath });
   } catch (error) {
@@ -76,10 +76,10 @@ export async function readTextFile(filePath, encoding = 'utf8') {
 /**
  * Safely write a text file with error handling
  */
-export async function writeTextFile(filePath, content, encoding = 'utf8') {
+export async function writeTextFile(filePath, content) {
   try {
     await fs.ensureDir(path.dirname(filePath));
-    await fs.writeFile(filePath, content, encoding);
+    await fs.writeFile(filePath, content);
   } catch (error) {
     if (error.code === 'EACCES') {
       throw CommandError.permissionError(`Permission denied writing to: ${filePath}`, { filePath });

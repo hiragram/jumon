@@ -8,11 +8,23 @@ const CURRENT_LOCKFILE_VERSION = 3;
 export async function loadCccscConfig(isLocal = false) {
   const configPath = getCccscConfigPath(isLocal);
   
-  const config = await readJsonFile(configPath, {
-    repositories: {}
-  });
-  
-  return config;
+  try {
+    const config = await readJsonFile(configPath, {
+      repositories: {}
+    });
+    
+    return config;
+  } catch (error) {
+    // Log warning for non-file-not-found errors
+    if (error.type !== 'FILE_NOT_FOUND') {
+      console.warn(`Failed to load cccsc.json: ${error.message}`);
+    }
+    
+    // Return default config
+    return {
+      repositories: {}
+    };
+  }
 }
 
 export async function saveCccscConfig(config, isLocal = false) {
@@ -24,13 +36,26 @@ export async function saveCccscConfig(config, isLocal = false) {
 export async function loadCccscLock(isLocal = false) {
   const lockPath = getCccscLockPath(isLocal);
   
-  const lockData = await readJsonFile(lockPath, {
-    lockfileVersion: CURRENT_LOCKFILE_VERSION,
-    repositories: {}
-  });
-  
-  // Automatically migrate legacy data to new format
-  return migrateLockfileData(lockData);
+  try {
+    const lockData = await readJsonFile(lockPath, {
+      lockfileVersion: CURRENT_LOCKFILE_VERSION,
+      repositories: {}
+    });
+    
+    // Automatically migrate legacy data to new format
+    return migrateLockfileData(lockData);
+  } catch (error) {
+    // Log warning for non-file-not-found errors
+    if (error.type !== 'FILE_NOT_FOUND') {
+      console.warn(`Failed to load cccsc-lock.json: ${error.message}`);
+    }
+    
+    // Return default lock
+    return {
+      lockfileVersion: CURRENT_LOCKFILE_VERSION,
+      repositories: {}
+    };
+  }
 }
 
 export async function saveCccscLock(lock, isLocal = false) {

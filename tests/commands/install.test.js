@@ -427,7 +427,7 @@ describe('Install Command', () => {
       const options = { global: false };
 
       await expect(installCommand(options)).rejects.toThrow('process.exit unexpectedly called with "1"');
-      expect(console.error).toHaveBeenCalledWith('Error in Install command: Lock file corrupted');
+      expect(console.error).toHaveBeenCalledWith('❌ Install command failed: Lock file corrupted (Context: {"operation":"Install command"})');
     });
   });
 

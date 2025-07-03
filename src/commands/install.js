@@ -57,7 +57,7 @@ export async function installCommand(options) {
     let totalInstalled = 0;
     const repositoryCount = Object.keys(lock.repositories).length;
     
-    for (const [repoKey, lockInfo] of Object.entries(lock.repositories)) {
+    for (const [repoKey] of Object.entries(lock.repositories)) {
       try {
         const { user, repo } = parseRepositoryKey(repoKey);
         const repoConfig = config.repositories?.[repoKey];

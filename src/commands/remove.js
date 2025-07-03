@@ -183,7 +183,7 @@ export async function removeCommand(commandName, options) {
       }
       
       // Update lock file
-      await removeCommandFromLock(command.name, repoKey, lock, isLocal);
+      await removeCommandFromLock(command.name, repoKey, lock);
       
       await saveCccscConfig(config, isLocal);
       await saveCccscLock(lock, isLocal);

@@ -3,12 +3,10 @@ import { listCommand } from '../../src/commands/list.js';
 import fs from 'fs-extra';
 import path from 'path';
 import * as paths from '../../src/utils/paths.js';
-import * as config from '../../src/utils/config.js';
 
 // Mock dependencies
 vi.mock('fs-extra');
 vi.mock('../../src/utils/paths.js');
-vi.mock('../../src/utils/config.js');
 
 // Mock path.join to work correctly with test paths
 vi.spyOn(path, 'join').mockImplementation((...args) => args.join('/'));
