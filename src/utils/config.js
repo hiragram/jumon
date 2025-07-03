@@ -1,6 +1,7 @@
 import fs from 'fs-extra';
 import { getCccscConfigPath, getCccscLockPath, ensureCccscConfigDir } from './paths.js';
 import { parseRepositoryPath } from './github.js';
+import { findCommandIndex } from './lock-helpers.js';
 
 // Current lockfile version for npm compatibility
 const CURRENT_LOCKFILE_VERSION = 3;
@@ -118,9 +119,9 @@ export async function addRepositoryToLock(user, repo, revision, commandPath = nu
   // Add new command to "only" list if specified
   if (commandPath) {
     const commandName = commandPath.split('/').pop().replace('.md', '');
-    const existingCommandIndex = repoEntry.only.findIndex(item => 
-      typeof item === 'string' ? item === commandName : item.name === commandName
-    );
+    // Handle backward compatibility: legacy lockfiles may contain string arrays
+    // while new lockfiles contain object arrays with {name, path, alias} structure
+    const existingCommandIndex = findCommandIndex(repoEntry.only, commandName);
     
     if (existingCommandIndex !== -1) {
       // Update existing command with new alias

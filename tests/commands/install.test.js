@@ -286,7 +286,11 @@ describe('Install Command', () => {
         expect.objectContaining({
           repositories: expect.objectContaining({
             'user/repo': expect.objectContaining({
-              only: ['cmd']
+              only: [{
+                name: 'cmd',
+                path: 'cmd.md',
+                alias: null
+              }]
             })
           })
         }),
