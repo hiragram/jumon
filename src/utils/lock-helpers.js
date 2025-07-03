@@ -109,3 +109,81 @@ export function migrateLockfileData(lockData) {
   
   return migratedData;
 }
+
+/**
+ * Normalizes an entire repository configuration
+ * Ensures all "only" arrays are in the correct format
+ * 
+ * @param {Object} repoConfig - Repository configuration object
+ * @returns {Object} Normalized repository configuration
+ */
+export function normalizeRepositoryConfig(repoConfig) {
+  if (!repoConfig) {
+    return repoConfig;
+  }
+  
+  const normalized = { ...repoConfig };
+  
+  if (normalized.only && Array.isArray(normalized.only)) {
+    normalized.only = normalized.only.map(normalizeOnlyItem);
+  }
+  
+  return normalized;
+}
+
+/**
+ * Normalizes config data structure
+ * Applies normalization to all repository configurations
+ * 
+ * @param {Object} configData - Config data object
+ * @returns {Object} Normalized config data
+ */
+export function normalizeConfigData(configData) {
+  if (!configData?.repositories) {
+    return configData;
+  }
+  
+  const normalized = { ...configData };
+  
+  for (const [repoKey, repoConfig] of Object.entries(normalized.repositories)) {
+    normalized.repositories[repoKey] = normalizeRepositoryConfig(repoConfig);
+  }
+  
+  return normalized;
+}
+
+/**
+ * Creates a new command object with proper structure
+ * 
+ * @param {string} name - Command name
+ * @param {string} path - Command file path
+ * @param {string|null} alias - Command alias
+ * @returns {CommandObject} Normalized command object
+ */
+export function createCommandObject(name, path, alias = null) {
+  if (!name || !path) {
+    throw new Error('Command name and path are required');
+  }
+  
+  return {
+    name: String(name),
+    path: String(path),
+    alias: alias ? String(alias) : null
+  };
+}
+
+/**
+ * Converts installed command names to normalized object format
+ * 
+ * @param {string[]} commandNames - Array of command names
+ * @returns {CommandObject[]} Array of normalized command objects
+ */
+export function createCommandObjectsFromNames(commandNames) {
+  if (!Array.isArray(commandNames)) {
+    return [];
+  }
+  
+  return commandNames.map(name => 
+    createCommandObject(name, `${name}${COMMAND_FILE_EXTENSION}`, null)
+  );
+}

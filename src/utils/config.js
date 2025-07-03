@@ -2,6 +2,7 @@ import fs from 'fs-extra';
 import { getCccscConfigPath, getCccscLockPath, ensureCccscConfigDir } from './paths.js';
 import { parseRepositoryPath } from './github.js';
 import { findCommandIndex, extractCommandName, migrateLockfileData } from './lock-helpers.js';
+import { validateCommandParams } from './command-params.js';
 
 // Current lockfile version for npm compatibility
 const CURRENT_LOCKFILE_VERSION = 3;

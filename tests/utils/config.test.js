@@ -400,7 +400,11 @@ describe('Config Utils', () => {
 
       expect(result).toEqual({
         revision: 'abc123',
-        only: ['test']
+        only: [{
+          name: 'test',
+          path: 'test.md',
+          alias: null
+        }]
       });
     });
 

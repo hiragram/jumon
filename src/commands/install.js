@@ -5,11 +5,43 @@ import { ensureCommandsDir } from '../utils/paths.js';
 import { loadCccscLock, loadCccscConfig, saveCccscLock } from '../utils/config.js';
 import { parseRepositoryKey, validateRepositoryConfig } from '../utils/repository.js';
 import { handleCommandError, logError, logSuccess, logWarning } from '../utils/errors.js';
+import { ErrorTypes, classifyError, createDetailedError } from '../utils/error-types.js';
+import { createCommandObjectsFromNames } from '../utils/lock-helpers.js';
 
 export async function installCommand(options) {
   try {
     const isLocal = !options.global;
-    const config = await loadCccscConfig(isLocal);
+    
+    // Load config with enhanced error handling
+    let config = null;
+    try {
+      config = await loadCccscConfig(isLocal);
+    } catch (error) {
+      const detailedError = createDetailedError(error, 'config-load', { isLocal });
+      
+      switch (detailedError.type) {
+        case ErrorTypes.CONFIG_PARSE_ERROR:
+          logError(`Config file is corrupted (JSON parse error): ${detailedError.message}`);
+          logError('Please check your cccsc.json file for syntax errors.');
+          process.exit(1);
+          break;
+        case ErrorTypes.PERMISSION_ERROR:
+          logError(`Permission denied reading config file: ${detailedError.message}`);
+          logError('Please check file permissions for cccsc.json');
+          process.exit(1);
+          break;
+        case ErrorTypes.FILE_NOT_FOUND:
+          logWarning('Config file not found, using empty config');
+          config = { repositories: {} };
+          break;
+        default:
+          logError(`Unexpected error loading config: ${detailedError.message} (Type: ${detailedError.type})`);
+          logError('Using empty config as fallback');
+          config = { repositories: {} };
+          break;
+      }
+    }
+    
     const lock = await loadCccscLock(isLocal);
     
     if (!lock.repositories || Object.keys(lock.repositories).length === 0) {
@@ -85,33 +117,18 @@ export async function installCommand(options) {
         
         // Update lock file with actually installed commands
         if (lock.repositories[repoKey]) {
-          try {
-            const config = await loadCccscConfig(isLocal);
-            const repoConfig = config.repositories?.[repoKey];
-            
-            if (repoConfig?.only && repoConfig.only.length > 0) {
-              // Use config information to preserve alias
-              lock.repositories[repoKey].only = repoConfig.only.map(cmd => ({
-                name: cmd.name,
-                path: cmd.path,
-                alias: cmd.alias
-              }));
-            } else {
-              // Fallback for commands installed without config
-              lock.repositories[repoKey].only = installedCommandNames.map(name => ({
-                name: name,
-                path: `${name}.md`,
-                alias: null
-              }));
-            }
-          } catch (error) {
-            logError(`Failed to load config: ${error.message}`);
-            // Fallback: use installed command names
-            lock.repositories[repoKey].only = installedCommandNames.map(name => ({
-              name: name,
-              path: `${name}.md`,
-              alias: null
+          const repoConfig = config?.repositories?.[repoKey];
+          
+          if (repoConfig?.only && repoConfig.only.length > 0) {
+            // Use config information to preserve alias
+            lock.repositories[repoKey].only = repoConfig.only.map(cmd => ({
+              name: cmd.name,
+              path: cmd.path,
+              alias: cmd.alias
             }));
+          } else {
+            // Fallback for commands installed without config
+            lock.repositories[repoKey].only = createCommandObjectsFromNames(installedCommandNames);
           }
         } else {
           // This should not happen normally, but let's be safe
