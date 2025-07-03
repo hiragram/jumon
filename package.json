@@ -1,6 +1,6 @@
 {
   "name": "jumon",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Claude Code custom slash commands package manager",
   "main": "index.js",
   "bin": {
