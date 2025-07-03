@@ -150,7 +150,7 @@ describe('Config Utils', () => {
           'user/repo': {
             branch: 'main',
             only: [{
-              name: 'alias',
+              name: 'test',
               path: 'test.md',
               alias: 'alias'
             }]
@@ -237,14 +237,18 @@ describe('Config Utils', () => {
       mockedFs.readJson.mockResolvedValue(existingLock);
       mockedFs.writeJson.mockResolvedValue();
 
-      await addRepositoryToLock('user', 'repo', 'abc123', 'test.md', false);
+      await addRepositoryToLock('user', 'repo', 'abc123', 'test.md', null, false);
 
       expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/cccsc-lock.json', {
         lockfileVersion: 1,
         repositories: {
           'user/repo': {
             revision: 'abc123',
-            only: ['test']
+            only: [{
+              name: 'test',
+              path: 'test.md',
+              alias: null
+            }]
           }
         }
       }, { spaces: 2 });
@@ -256,7 +260,11 @@ describe('Config Utils', () => {
         repositories: {
           'user/repo': {
             revision: 'old123',
-            only: ['existing']
+            only: [{
+              name: 'existing',
+              path: 'existing.md',
+              alias: null
+            }]
           }
         }
       };
@@ -265,14 +273,85 @@ describe('Config Utils', () => {
       mockedFs.readJson.mockResolvedValue(existingLock);
       mockedFs.writeJson.mockResolvedValue();
 
-      await addRepositoryToLock('user', 'repo', 'new456', 'test.md', true);
+      await addRepositoryToLock('user', 'repo', 'new456', 'test.md', null, true);
 
       expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/cccsc-lock.json', {
         lockfileVersion: 1,
         repositories: {
           'user/repo': {
             revision: 'new456',
-            only: ['existing', 'test']
+            only: [{
+              name: 'existing',
+              path: 'existing.md',
+              alias: null
+            }, {
+              name: 'test',
+              path: 'test.md',
+              alias: null
+            }]
+          }
+        }
+      }, { spaces: 2 });
+    });
+
+    test('should add repository with alias to lock', async () => {
+      const existingLock = {
+        lockfileVersion: 1,
+        repositories: {}
+      };
+      
+      mockedFs.pathExists.mockResolvedValue(true);
+      mockedFs.readJson.mockResolvedValue(existingLock);
+      mockedFs.writeJson.mockResolvedValue();
+
+      await addRepositoryToLock('user', 'repo', 'abc123', 'test.md', 'my-alias', false);
+
+      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/cccsc-lock.json', {
+        lockfileVersion: 1,
+        repositories: {
+          'user/repo': {
+            revision: 'abc123',
+            only: [{
+              name: 'test',
+              path: 'test.md',
+              alias: 'my-alias'
+            }]
+          }
+        }
+      }, { spaces: 2 });
+    });
+
+    test('should update existing command alias in lock', async () => {
+      const existingLock = {
+        lockfileVersion: 1,
+        repositories: {
+          'user/repo': {
+            revision: 'old123',
+            only: [{
+              name: 'test',
+              path: 'test.md',
+              alias: 'old-alias'
+            }]
+          }
+        }
+      };
+      
+      mockedFs.pathExists.mockResolvedValue(true);
+      mockedFs.readJson.mockResolvedValue(existingLock);
+      mockedFs.writeJson.mockResolvedValue();
+
+      await addRepositoryToLock('user', 'repo', 'new456', 'test.md', 'new-alias', false);
+
+      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/cccsc-lock.json', {
+        lockfileVersion: 1,
+        repositories: {
+          'user/repo': {
+            revision: 'new456',
+            only: [{
+              name: 'test',
+              path: 'test.md',
+              alias: 'new-alias'
+            }]
           }
         }
       }, { spaces: 2 });
@@ -288,7 +367,7 @@ describe('Config Utils', () => {
       mockedFs.readJson.mockResolvedValue(existingLock);
       mockedFs.writeJson.mockResolvedValue();
 
-      await addRepositoryToLock('user', 'repo', 'abc123', null, false);
+      await addRepositoryToLock('user', 'repo', 'abc123', null, null, false);
 
       expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/cccsc-lock.json', {
         lockfileVersion: 1,
@@ -321,7 +400,11 @@ describe('Config Utils', () => {
 
       expect(result).toEqual({
         revision: 'abc123',
-        only: ['test']
+        only: [{
+          name: 'test',
+          path: 'test.md',
+          alias: null
+        }]
       });
     });
 

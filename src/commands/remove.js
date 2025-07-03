@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import { getCommandsPath } from '../utils/paths.js';
 import { loadCccscConfig, saveCccscConfig, loadCccscLock, saveCccscLock } from '../utils/config.js';
+import { findCommandIndex } from '../utils/lock-helpers.js';
 
 async function findCommandInConfig(commandName, config, isLocal = false) {
   if (!config.repositories) {
@@ -48,7 +49,9 @@ async function removeCommandFromLock(commandName, repoKey, lock) {
   
   const repoLock = lock.repositories[repoKey];
   if (repoLock.only && repoLock.only.length > 0) {
-    const commandIndex = repoLock.only.indexOf(commandName);
+    // Handle backward compatibility: legacy lockfiles may contain string arrays
+    // while new lockfiles contain object arrays with {name, path, alias} structure
+    const commandIndex = findCommandIndex(repoLock.only, commandName);
     if (commandIndex !== -1) {
       repoLock.only.splice(commandIndex, 1);
       
@@ -180,7 +183,7 @@ export async function removeCommand(commandName, options) {
       }
       
       // Update lock file
-      await removeCommandFromLock(command.name, repoKey, lock, isLocal);
+      await removeCommandFromLock(command.name, repoKey, lock);
       
       await saveCccscConfig(config, isLocal);
       await saveCccscLock(lock, isLocal);

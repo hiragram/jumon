@@ -1,6 +1,6 @@
-import fs from 'fs-extra';
 import { getCccscConfigPath, getCccscLockPath, ensureCccscConfigDir } from './paths.js';
-import { parseRepositoryPath } from './github.js';
+import { findCommandIndex, extractCommandName, migrateLockfileData } from './lock-helpers.js';
+import { readJsonFile, writeJsonFile } from './filesystem.js';
 
 // Current lockfile version for npm compatibility
 const CURRENT_LOCKFILE_VERSION = 3;
@@ -9,45 +9,59 @@ export async function loadCccscConfig(isLocal = false) {
   const configPath = getCccscConfigPath(isLocal);
   
   try {
-    if (await fs.pathExists(configPath)) {
-      return await fs.readJson(configPath);
-    }
+    const config = await readJsonFile(configPath, {
+      repositories: {}
+    });
+    
+    return config;
   } catch (error) {
-    console.warn(`Failed to load cccsc.json: ${error.message}`);
+    // Log warning for non-file-not-found errors
+    if (error.type !== 'FILE_NOT_FOUND') {
+      console.warn(`Failed to load cccsc.json: ${error.message}`);
+    }
+    
+    // Return default config
+    return {
+      repositories: {}
+    };
   }
-  
-  return {
-    repositories: {}
-  };
 }
 
 export async function saveCccscConfig(config, isLocal = false) {
   await ensureCccscConfigDir(isLocal);
   const configPath = getCccscConfigPath(isLocal);
-  await fs.writeJson(configPath, config, { spaces: 2 });
+  await writeJsonFile(configPath, config, { spaces: 2 });
 }
 
 export async function loadCccscLock(isLocal = false) {
   const lockPath = getCccscLockPath(isLocal);
   
   try {
-    if (await fs.pathExists(lockPath)) {
-      return await fs.readJson(lockPath);
-    }
+    const lockData = await readJsonFile(lockPath, {
+      lockfileVersion: CURRENT_LOCKFILE_VERSION,
+      repositories: {}
+    });
+    
+    // Automatically migrate legacy data to new format
+    return migrateLockfileData(lockData);
   } catch (error) {
-    console.warn(`Failed to load cccsc-lock.json: ${error.message}`);
+    // Log warning for non-file-not-found errors
+    if (error.type !== 'FILE_NOT_FOUND') {
+      console.warn(`Failed to load cccsc-lock.json: ${error.message}`);
+    }
+    
+    // Return default lock
+    return {
+      lockfileVersion: CURRENT_LOCKFILE_VERSION,
+      repositories: {}
+    };
   }
-  
-  return {
-    lockfileVersion: CURRENT_LOCKFILE_VERSION,
-    repositories: {}
-  };
 }
 
 export async function saveCccscLock(lock, isLocal = false) {
   await ensureCccscConfigDir(isLocal);
   const lockPath = getCccscLockPath(isLocal);
-  await fs.writeJson(lockPath, lock, { spaces: 2 });
+  await writeJsonFile(lockPath, lock, { spaces: 2 });
 }
 
 export async function addRepositoryToConfig(user, repo, commandPath = null, alias = null, branch = null, isLocal = false) {
@@ -72,19 +86,18 @@ export async function addRepositoryToConfig(user, repo, commandPath = null, alia
   
   if (commandPath) {
     // Add specific command
-    const commandName = alias || commandPath.split('/').pop().replace('.md', '');
+    const originalName = extractCommandName(commandPath);
     const existingCommand = config.repositories[repoKey].only.find(cmd => cmd.path === commandPath);
     
     if (!existingCommand) {
       config.repositories[repoKey].only.push({
-        name: commandName,
+        name: originalName,
         path: commandPath,
         alias: alias || null
       });
-    } else if (alias && existingCommand.alias !== alias) {
-      // Update alias if provided
-      existingCommand.alias = alias;
-      existingCommand.name = alias;
+    } else if (alias !== existingCommand.alias) {
+      // Update alias if provided or changed
+      existingCommand.alias = alias || null;
     }
   } else {
     // Repository-wide installation (empty only array means all commands)
@@ -95,7 +108,7 @@ export async function addRepositoryToConfig(user, repo, commandPath = null, alia
 }
 
 
-export async function addRepositoryToLock(user, repo, revision, commandPath = null, isLocal = false) {
+export async function addRepositoryToLock(user, repo, revision, commandPath = null, alias = null, isLocal = false) {
   const lock = await loadCccscLock(isLocal);
   
   if (!lock.repositories) {
@@ -118,9 +131,25 @@ export async function addRepositoryToLock(user, repo, revision, commandPath = nu
   
   // Add new command to "only" list if specified
   if (commandPath) {
-    const commandName = commandPath.split('/').pop().replace('.md', '');
-    if (!repoEntry.only.includes(commandName)) {
-      repoEntry.only.push(commandName);
+    const commandName = extractCommandName(commandPath);
+    // Handle backward compatibility: legacy lockfiles may contain string arrays
+    // while new lockfiles contain object arrays with {name, path, alias} structure
+    const existingCommandIndex = findCommandIndex(repoEntry.only, commandName);
+    
+    if (existingCommandIndex !== -1) {
+      // Update existing command with new alias
+      repoEntry.only[existingCommandIndex] = {
+        name: commandName,
+        path: commandPath,
+        alias: alias
+      };
+    } else {
+      // Add new command
+      repoEntry.only.push({
+        name: commandName,
+        path: commandPath,
+        alias: alias
+      });
     }
   } else if (!existingRepo || !existingRepo.only || existingRepo.only.length === 0) {
     // If no specific command and no existing "only" list, keep empty (all commands)

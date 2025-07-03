@@ -4,12 +4,48 @@ import { getFileContent, findMarkdownFiles } from '../utils/github.js';
 import { ensureCommandsDir } from '../utils/paths.js';
 import { loadCccscLock, loadCccscConfig, saveCccscLock } from '../utils/config.js';
 import { parseRepositoryKey, validateRepositoryConfig } from '../utils/repository.js';
-import { handleCommandError, logError, logSuccess, logWarning } from '../utils/errors.js';
+import { logError, logSuccess, logWarning } from '../utils/errors.js';
+import { ErrorTypes } from '../utils/error-types.js';
+import { createCommandObjectsFromNames } from '../utils/lock-helpers.js';
+import { CommandError, handleCommandError as handleError } from '../utils/command-error.js';
+import { writeTextFile } from '../utils/filesystem.js';
 
 export async function installCommand(options) {
   try {
     const isLocal = !options.global;
-    const config = await loadCccscConfig(isLocal);
+    
+    // Load config with enhanced error handling
+    let config = null;
+    try {
+      config = await loadCccscConfig(isLocal);
+    } catch (error) {
+      if (error instanceof CommandError) {
+        switch (error.type) {
+          case ErrorTypes.CONFIG_PARSE_ERROR:
+            logError(`Config file is corrupted (JSON parse error): ${error.message}`);
+            logError('Please check your cccsc.json file for syntax errors.');
+            process.exit(1);
+            break;
+          case ErrorTypes.PERMISSION_ERROR:
+            logError(`Permission denied reading config file: ${error.message}`);
+            logError('Please check file permissions for cccsc.json');
+            process.exit(1);
+            break;
+          case ErrorTypes.FILE_NOT_FOUND:
+            logWarning('Config file not found, using empty config');
+            config = { repositories: {} };
+            break;
+          default:
+            logError(`Unexpected error loading config: ${error.message} (Type: ${error.type})`);
+            logError('Using empty config as fallback');
+            config = { repositories: {} };
+            break;
+        }
+      } else {
+        throw CommandError.fromError(error, ErrorTypes.CONFIG_READ_ERROR, { isLocal });
+      }
+    }
+    
     const lock = await loadCccscLock(isLocal);
     
     if (!lock.repositories || Object.keys(lock.repositories).length === 0) {
@@ -21,7 +57,7 @@ export async function installCommand(options) {
     let totalInstalled = 0;
     const repositoryCount = Object.keys(lock.repositories).length;
     
-    for (const [repoKey, lockInfo] of Object.entries(lock.repositories)) {
+    for (const [repoKey] of Object.entries(lock.repositories)) {
       try {
         const { user, repo } = parseRepositoryKey(repoKey);
         const repoConfig = config.repositories?.[repoKey];
@@ -41,7 +77,7 @@ export async function installCommand(options) {
         await fs.ensureDir(targetDir);
         
         let installedCommands = 0;
-        let installedCommandNames = [];
+        const installedCommandNames = [];
         
         if (repoConfig.only && repoConfig.only.length > 0) {
           // Install specific commands
@@ -52,10 +88,10 @@ export async function installCommand(options) {
               const commandName = commandDef.alias || commandDef.name;
               const targetFile = path.join(targetDir, `${commandName}.md`);
               
-              await fs.writeFile(targetFile, content);
+              await writeTextFile(targetFile, content);
               logSuccess(`Installed ${commandName}`);
               installedCommands++;
-              installedCommandNames.push(commandName);
+              installedCommandNames.push(commandDef.name);
             } catch (error) {
               logError(`Failed to install ${commandDef.name}: ${error.message}`);
             }
@@ -70,7 +106,7 @@ export async function installCommand(options) {
                 const content = await getFileContent(user, repo, file.path, branch);
                 const targetFile = path.join(targetDir, file.name + '.md');
                 
-                await fs.writeFile(targetFile, content);
+                await writeTextFile(targetFile, content);
                 logSuccess(`Installed ${file.name}`);
                 installedCommands++;
                 installedCommandNames.push(file.name);
@@ -85,7 +121,19 @@ export async function installCommand(options) {
         
         // Update lock file with actually installed commands
         if (lock.repositories[repoKey]) {
-          lock.repositories[repoKey].only = installedCommandNames;
+          const repoConfig = config?.repositories?.[repoKey];
+          
+          if (repoConfig?.only && repoConfig.only.length > 0) {
+            // Use config information to preserve alias
+            lock.repositories[repoKey].only = repoConfig.only.map(cmd => ({
+              name: cmd.name,
+              path: cmd.path,
+              alias: cmd.alias
+            }));
+          } else {
+            // Fallback for commands installed without config
+            lock.repositories[repoKey].only = createCommandObjectsFromNames(installedCommandNames);
+          }
         } else {
           // This should not happen normally, but let's be safe
           logWarning(`Lock file entry for ${repoKey} not found, skipping lock update`);
@@ -104,6 +152,6 @@ export async function installCommand(options) {
     
     console.log(`✓ Installed ${totalInstalled} commands from ${repositoryCount} repositories`);
   } catch (error) {
-    handleCommandError(error, 'Install command');
+    handleError(error, 'Install command');
   }
 }

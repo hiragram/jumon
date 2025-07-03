@@ -286,7 +286,11 @@ describe('Install Command', () => {
         expect.objectContaining({
           repositories: expect.objectContaining({
             'user/repo': expect.objectContaining({
-              only: ['cmd']
+              only: [{
+                name: 'cmd',
+                path: 'cmd.md',
+                alias: null
+              }]
             })
           })
         }),
@@ -423,7 +427,7 @@ describe('Install Command', () => {
       const options = { global: false };
 
       await expect(installCommand(options)).rejects.toThrow('process.exit unexpectedly called with "1"');
-      expect(console.error).toHaveBeenCalledWith('Error in Install command: Lock file corrupted');
+      expect(console.error).toHaveBeenCalledWith('❌ Install command failed: Lock file corrupted (Context: {"operation":"Install command"})');
     });
   });
 

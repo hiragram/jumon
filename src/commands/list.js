@@ -1,7 +1,6 @@
 import path from 'path';
 import fs from 'fs-extra';
-import { getCommandsPath, getLocalCommandsPath, getGlobalCommandsPath } from '../utils/paths.js';
-import { loadCccscLock } from '../utils/config.js';
+import { getLocalCommandsPath, getGlobalCommandsPath } from '../utils/paths.js';
 
 async function listCommandsInDirectory(commandsPath, title, isGlobal = false) {
   if (!(await fs.pathExists(commandsPath))) {
@@ -80,8 +79,8 @@ export async function listCommand(options) {
       const localPath = getLocalCommandsPath();
       const globalPath = getGlobalCommandsPath();
       
-      const localCommands = await listCommandsInDirectory(localPath, '📍 Local Commands (.claude/commands/)', false);
-      const globalCommands = await listCommandsInDirectory(globalPath, '🌍 Global Commands (~/.claude/commands/)', true);
+      await listCommandsInDirectory(localPath, '📍 Local Commands (.claude/commands/)', false);
+      await listCommandsInDirectory(globalPath, '🌍 Global Commands (~/.claude/commands/)', true);
     }
   } catch (error) {
     console.error(`Error: ${error.message}`);
