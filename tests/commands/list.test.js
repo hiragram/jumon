@@ -1,27 +1,30 @@
-import { jest } from '@jest/globals';
-import fs from 'fs-extra';
+import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import { listCommand } from '../../src/commands/list.js';
+import fs from 'fs-extra';
+import path from 'path';
 import * as paths from '../../src/utils/paths.js';
+import * as config from '../../src/utils/config.js';
 
 // Mock dependencies
-jest.mock('fs-extra');
-jest.mock('../../src/utils/paths.js');
+vi.mock('fs-extra');
+vi.mock('../../src/utils/paths.js');
+vi.mock('../../src/utils/config.js');
 
-const mockedFs = fs;
-const mockedPaths = paths;
+// Mock path.join to work correctly with test paths
+vi.spyOn(path, 'join').mockImplementation((...args) => args.join('/'));
 
 describe('List Command', () => {
   let consoleSpy;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Mock console.log
-    consoleSpy = jest.spyOn(console, 'log').mockImplementation();
+    consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     
     // Setup default mocks
-    mockedPaths.getCommandsPath.mockReturnValue('/test/commands');
-    mockedFs.pathExists.mockResolvedValue(true);
+    vi.mocked(paths.getCommandsPath).mockReturnValue('/test/commands');
+    vi.mocked(fs.pathExists).mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -30,16 +33,15 @@ describe('List Command', () => {
 
   describe('successful listing', () => {
     test('should list commands in both local and global by default', async () => {
-      // Mock local commands
-      mockedPaths.getCommandsPath
-        .mockReturnValueOnce('/local/commands')
-        .mockReturnValueOnce('/global/commands');
+      // Mock local and global paths
+      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/jumon');
+      vi.mocked(paths.getGlobalCommandsPath).mockReturnValue('/global/commands/jumon');
 
-      mockedFs.pathExists
+      vi.mocked(fs.pathExists)
         .mockResolvedValueOnce(true)  // local exists
         .mockResolvedValueOnce(true); // global exists
 
-      mockedFs.readdir
+      vi.mocked(fs.readdir)
         .mockResolvedValueOnce(['user1']) // local users
         .mockResolvedValueOnce(['repo1']) // local user1 repos
         .mockResolvedValueOnce(['cmd1.md', 'cmd2.md']) // local repo1 commands
@@ -47,7 +49,7 @@ describe('List Command', () => {
         .mockResolvedValueOnce(['repo2']) // global user2 repos
         .mockResolvedValueOnce(['cmd3.md']); // global repo2 commands
 
-      mockedFs.stat.mockResolvedValue({ isDirectory: () => true });
+      vi.mocked(fs.stat).mockResolvedValue({ isDirectory: () => true });
 
       const options = {};
 
@@ -61,12 +63,16 @@ describe('List Command', () => {
     });
 
     test('should list only local commands when --local flag is used', async () => {
-      mockedFs.readdir
+      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/jumon');
+      
+      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      
+      vi.mocked(fs.readdir)
         .mockResolvedValueOnce(['user1'])
         .mockResolvedValueOnce(['repo1'])
         .mockResolvedValueOnce(['cmd1.md']);
 
-      mockedFs.stat.mockResolvedValue({ isDirectory: () => true });
+      vi.mocked(fs.stat).mockResolvedValue({ isDirectory: () => true });
 
       const options = { local: true };
 
@@ -78,12 +84,16 @@ describe('List Command', () => {
     });
 
     test('should list only global commands when --global flag is used', async () => {
-      mockedFs.readdir
+      vi.mocked(paths.getGlobalCommandsPath).mockReturnValue('/global/commands/jumon');
+      
+      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      
+      vi.mocked(fs.readdir)
         .mockResolvedValueOnce(['user1'])
         .mockResolvedValueOnce(['repo1'])
         .mockResolvedValueOnce(['cmd1.md']);
 
-      mockedFs.stat.mockResolvedValue({ isDirectory: () => true });
+      vi.mocked(fs.stat).mockResolvedValue({ isDirectory: () => true });
 
       const options = { global: true };
 
@@ -95,7 +105,11 @@ describe('List Command', () => {
     });
 
     test('should handle multiple users and repositories', async () => {
-      mockedFs.readdir
+      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/jumon');
+      
+      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      
+      vi.mocked(fs.readdir)
         .mockResolvedValueOnce(['user1', 'user2']) // users
         .mockResolvedValueOnce(['repo1', 'repo2']) // user1 repos
         .mockResolvedValueOnce(['cmd1.md']) // user1/repo1 commands
@@ -103,7 +117,7 @@ describe('List Command', () => {
         .mockResolvedValueOnce(['repo3']) // user2 repos
         .mockResolvedValueOnce(['cmd3.md']); // user2/repo3 commands
 
-      mockedFs.stat.mockResolvedValue({ isDirectory: () => true });
+      vi.mocked(fs.stat).mockResolvedValue({ isDirectory: () => true });
 
       const options = { local: true };
 
@@ -115,12 +129,15 @@ describe('List Command', () => {
     });
 
     test('should filter out non-markdown files', async () => {
-      mockedFs.readdir
+      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/jumon');
+      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      
+      vi.mocked(fs).readdir
         .mockResolvedValueOnce(['user1'])
         .mockResolvedValueOnce(['repo1'])
         .mockResolvedValueOnce(['cmd1.md', 'readme.txt', 'cmd2.md', '.hidden']);
 
-      mockedFs.stat.mockResolvedValue({ isDirectory: () => true });
+      vi.mocked(fs.stat).mockResolvedValue({ isDirectory: () => true });
 
       const options = { local: true };
 
@@ -133,13 +150,16 @@ describe('List Command', () => {
     });
 
     test('should handle repositories with no markdown files', async () => {
-      mockedFs.readdir
+      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/jumon');
+      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      
+      vi.mocked(fs).readdir
         .mockResolvedValueOnce(['user1'])
         .mockResolvedValueOnce(['repo1', 'repo2'])
         .mockResolvedValueOnce([]) // repo1 empty
         .mockResolvedValueOnce(['cmd1.md']); // repo2 has commands
 
-      mockedFs.stat.mockResolvedValue({ isDirectory: () => true });
+      vi.mocked(fs.stat).mockResolvedValue({ isDirectory: () => true });
 
       const options = { local: true };
 
@@ -152,7 +172,7 @@ describe('List Command', () => {
 
   describe('empty directories handling', () => {
     test('should show message when no commands are found in local', async () => {
-      mockedFs.pathExists.mockResolvedValue(false);
+      vi.mocked(fs).pathExists.mockResolvedValue(false);
 
       const options = { local: true };
 
@@ -163,7 +183,7 @@ describe('List Command', () => {
     });
 
     test('should show message when no commands are found in global', async () => {
-      mockedFs.pathExists.mockResolvedValue(false);
+      vi.mocked(fs).pathExists.mockResolvedValue(false);
 
       const options = { global: true };
 
@@ -174,7 +194,7 @@ describe('List Command', () => {
     });
 
     test('should handle empty commands directory', async () => {
-      mockedFs.readdir.mockResolvedValue([]);
+      vi.mocked(fs).readdir.mockResolvedValue([]);
 
       const options = { local: true };
 
@@ -185,11 +205,11 @@ describe('List Command', () => {
     });
 
     test('should handle users with no repositories', async () => {
-      mockedFs.readdir
+      vi.mocked(fs).readdir
         .mockResolvedValueOnce(['user1'])
         .mockResolvedValueOnce([]); // user1 has no repos
 
-      mockedFs.stat.mockResolvedValue({ isDirectory: () => true });
+      vi.mocked(fs.stat).mockResolvedValue({ isDirectory: () => true });
 
       const options = { local: true };
 
@@ -202,7 +222,7 @@ describe('List Command', () => {
 
   describe('error handling', () => {
     test('should handle readdir errors gracefully', async () => {
-      mockedFs.readdir.mockRejectedValue(new Error('Permission denied'));
+      vi.mocked(fs).readdir.mockRejectedValue(new Error('Permission denied'));
 
       const options = { local: true };
 
@@ -213,15 +233,18 @@ describe('List Command', () => {
     });
 
     test('should handle stat errors for individual entries', async () => {
-      mockedFs.readdir
+      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/jumon');
+      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      
+      vi.mocked(fs).readdir
         .mockResolvedValueOnce(['user1', 'invalidentry'])
         .mockResolvedValueOnce(['repo1'])
         .mockResolvedValueOnce(['cmd1.md']);
 
-      mockedFs.stat
+      vi.mocked(fs).stat
         .mockResolvedValueOnce({ isDirectory: () => true })  // user1 is directory
-        .mockRejectedValueOnce(new Error('Stat failed'))    // invalidentry fails
-        .mockResolvedValueOnce({ isDirectory: () => true }); // repo1 is directory
+        .mockResolvedValueOnce({ isDirectory: () => true })  // repo1 is directory
+        .mockRejectedValueOnce(new Error('Stat failed'));   // invalidentry fails
 
       const options = { local: true };
 
@@ -232,12 +255,12 @@ describe('List Command', () => {
     });
 
     test('should handle readdir errors for specific repositories', async () => {
-      mockedFs.readdir
+      vi.mocked(fs).readdir
         .mockResolvedValueOnce(['user1'])
         .mockResolvedValueOnce(['repo1'])
         .mockRejectedValueOnce(new Error('Cannot read repo'));
 
-      mockedFs.stat.mockResolvedValue({ isDirectory: () => true });
+      vi.mocked(fs.stat).mockResolvedValue({ isDirectory: () => true });
 
       const options = { local: true };
 
@@ -248,15 +271,18 @@ describe('List Command', () => {
     });
 
     test('should handle mixed file types in user directories', async () => {
-      mockedFs.readdir
+      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/jumon');
+      vi.mocked(fs.pathExists).mockResolvedValue(true);
+      
+      vi.mocked(fs).readdir
         .mockResolvedValueOnce(['user1', 'somefile.txt'])
         .mockResolvedValueOnce(['repo1'])
         .mockResolvedValueOnce(['cmd1.md']);
 
-      mockedFs.stat
+      vi.mocked(fs).stat
         .mockResolvedValueOnce({ isDirectory: () => true })  // user1 is directory
-        .mockResolvedValueOnce({ isDirectory: () => false }) // somefile.txt is file
-        .mockResolvedValueOnce({ isDirectory: () => true }); // repo1 is directory
+        .mockResolvedValueOnce({ isDirectory: () => true })  // repo1 is directory
+        .mockResolvedValueOnce({ isDirectory: () => false }); // somefile.txt is file
 
       const options = { local: true };
 
@@ -269,15 +295,18 @@ describe('List Command', () => {
 
   describe('both local and global', () => {
     test('should show both when neither flag is specified', async () => {
-      mockedPaths.getCommandsPath
+      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/jumon');
+      vi.mocked(paths.getGlobalCommandsPath).mockReturnValue('/global/commands/jumon');
+      
+      vi.mocked(paths).getCommandsPath
         .mockReturnValueOnce('/local/commands')
         .mockReturnValueOnce('/global/commands');
 
-      mockedFs.pathExists
+      vi.mocked(fs).pathExists
         .mockResolvedValueOnce(true)
         .mockResolvedValueOnce(true);
 
-      mockedFs.readdir
+      vi.mocked(fs).readdir
         .mockResolvedValueOnce(['user1'])
         .mockResolvedValueOnce(['repo1'])
         .mockResolvedValueOnce(['local.md'])
@@ -285,7 +314,7 @@ describe('List Command', () => {
         .mockResolvedValueOnce(['repo2'])
         .mockResolvedValueOnce(['global.md']);
 
-      mockedFs.stat.mockResolvedValue({ isDirectory: () => true });
+      vi.mocked(fs.stat).mockResolvedValue({ isDirectory: () => true });
 
       const options = {};
 
@@ -298,20 +327,23 @@ describe('List Command', () => {
     });
 
     test('should handle when only local has commands', async () => {
-      mockedPaths.getCommandsPath
+      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/jumon');
+      vi.mocked(paths.getGlobalCommandsPath).mockReturnValue('/global/commands/jumon');
+      
+      vi.mocked(paths).getCommandsPath
         .mockReturnValueOnce('/local/commands')
         .mockReturnValueOnce('/global/commands');
 
-      mockedFs.pathExists
+      vi.mocked(fs).pathExists
         .mockResolvedValueOnce(true)  // local exists
         .mockResolvedValueOnce(false); // global doesn't exist
 
-      mockedFs.readdir
+      vi.mocked(fs).readdir
         .mockResolvedValueOnce(['user1'])
         .mockResolvedValueOnce(['repo1'])
         .mockResolvedValueOnce(['local.md']);
 
-      mockedFs.stat.mockResolvedValue({ isDirectory: () => true });
+      vi.mocked(fs.stat).mockResolvedValue({ isDirectory: () => true });
 
       const options = {};
 

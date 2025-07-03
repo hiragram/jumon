@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { describe, test, expect, beforeEach, vi } from 'vitest';
 import path from 'path';
 import os from 'os';
 import fs from 'fs-extra';
@@ -14,22 +14,22 @@ import {
 } from '../../src/utils/paths.js';
 
 // Mock fs-extra, os, and path
-jest.mock('fs-extra');
-jest.mock('os');
-jest.mock('path');
+vi.mock('fs-extra');
+vi.mock('os');
+vi.mock('path');
 
-const mockedFs = fs;
-const mockedOs = os;
-const mockedPath = path;
+const mockedFs = vi.mocked(fs);
+const mockedOs = vi.mocked(os);
+const mockedPath = vi.mocked(path);
 
 describe('Paths Utils', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Setup default mocks
     mockedOs.homedir.mockReturnValue('/home/user');
-    mockedPath.join.mockImplementation((...args) => args.join('/'));
-    process.cwd = jest.fn().mockReturnValue('/current/dir');
+    vi.spyOn(path, 'join').mockImplementation((...args) => args.join('/'));
+    process.cwd = vi.fn().mockReturnValue('/current/dir');
   });
 
   describe('getGlobalCommandsPath', () => {

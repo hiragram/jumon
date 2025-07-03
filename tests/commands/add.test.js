@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import fs from 'fs-extra';
 import { createInterface } from 'readline';
 import { addCommand } from '../../src/commands/add.js';
@@ -7,31 +7,31 @@ import * as paths from '../../src/utils/paths.js';
 import * as config from '../../src/utils/config.js';
 
 // Mock all dependencies
-jest.mock('fs-extra');
-jest.mock('readline');
-jest.mock('../../src/utils/github.js');
-jest.mock('../../src/utils/paths.js');
-jest.mock('../../src/utils/config.js');
+vi.mock('fs-extra');
+vi.mock('readline');
+vi.mock('../../src/utils/github.js');
+vi.mock('../../src/utils/paths.js');
+vi.mock('../../src/utils/config.js');
 
-const mockedFs = fs;
-const mockedGithub = github;
-const mockedPaths = paths;
-const mockedConfig = config;
-const mockedReadline = createInterface;
+const mockedFs = vi.mocked(fs);
+const mockedGithub = vi.mocked(github);
+const mockedPaths = vi.mocked(paths);
+const mockedConfig = vi.mocked(config);
+const mockedReadline = vi.mocked(createInterface);
 
 describe('Add Command', () => {
   let consoleSpy;
   let processExitSpy;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Mock console.log and console.error
-    consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-    jest.spyOn(console, 'error').mockImplementation();
+    consoleSpy = vi.spyOn(console, 'log').mockImplementation();
+    vi.spyOn(console, 'error').mockImplementation();
     
     // Mock process.exit
-    processExitSpy = jest.spyOn(process, 'exit').mockImplementation();
+    processExitSpy = vi.spyOn(process, 'exit').mockImplementation();
     
     // Setup default mocks
     mockedGithub.parseRepositoryPath.mockReturnValue({
@@ -176,8 +176,8 @@ describe('Add Command', () => {
 
       // Mock readline to simulate user saying 'yes'
       const mockRl = {
-        question: jest.fn((question, callback) => callback('y')),
-        close: jest.fn()
+        question: vi.fn((question, callback) => callback('y')),
+        close: vi.fn()
       };
       mockedReadline.mockReturnValue(mockRl);
 
@@ -199,8 +199,8 @@ describe('Add Command', () => {
       });
 
       const mockRl = {
-        question: jest.fn((question, callback) => callback('n')),
-        close: jest.fn()
+        question: vi.fn((question, callback) => callback('n')),
+        close: vi.fn()
       };
       mockedReadline.mockReturnValue(mockRl);
 

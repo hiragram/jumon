@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { describe, test, expect, beforeEach, vi } from 'vitest';
 import fs from 'fs-extra';
 import { 
   loadJumonConfig, 
@@ -12,15 +12,15 @@ import {
 import * as paths from '../../src/utils/paths.js';
 
 // Mock fs-extra and paths
-jest.mock('fs-extra');
-jest.mock('../../src/utils/paths.js');
+vi.mock('fs-extra');
+vi.mock('../../src/utils/paths.js');
 
-const mockedFs = fs;
-const mockedPaths = paths;
+const mockedFs = vi.mocked(fs);
+const mockedPaths = vi.mocked(paths);
 
 describe('Config Utils', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockedPaths.getJumonConfigPath.mockReturnValue('/test/jumon.json');
     mockedPaths.getJumonLockPath.mockReturnValue('/test/jumon-lock.json');
     mockedPaths.ensureJumonConfigDir.mockResolvedValue();
@@ -60,7 +60,7 @@ describe('Config Utils', () => {
       mockedFs.pathExists.mockResolvedValue(true);
       mockedFs.readJson.mockRejectedValue(new Error('Permission denied'));
 
-      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation();
 
       const result = await loadJumonConfig(true);
 

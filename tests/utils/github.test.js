@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { describe, test, expect, beforeEach, vi } from 'vitest';
 import axios from 'axios';
 import { 
   parseRepositoryPath, 
@@ -8,12 +8,12 @@ import {
 } from '../../src/utils/github.js';
 
 // Mock axios
-jest.mock('axios');
-const mockedAxios = axios;
+vi.mock('axios');
+const mockedAxios = vi.mocked(axios);
 
 describe('GitHub Utils', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('parseRepositoryPath', () => {

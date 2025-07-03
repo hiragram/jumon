@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import axios from 'axios';
 import fs from 'fs-extra';
 import { createInterface } from 'readline';
@@ -8,33 +8,34 @@ import * as paths from '../../src/utils/paths.js';
 import * as config from '../../src/utils/config.js';
 
 // Mock dependencies
-jest.mock('axios');
-jest.mock('fs-extra');
-jest.mock('readline');
-jest.mock('../../src/utils/github.js');
-jest.mock('../../src/utils/paths.js');
-jest.mock('../../src/utils/config.js');
+vi.mock('axios');
+vi.mock('fs-extra');
+vi.mock('readline');
+vi.mock('../../src/utils/github.js');
+vi.mock('../../src/utils/paths.js');
+vi.mock('../../src/utils/config.js');
 
-const mockedAxios = axios;
-const mockedFs = fs;
-const mockedGithub = github;
-const mockedPaths = paths;
-const mockedConfig = config;
-const mockedReadline = createInterface;
+const mockedAxios = vi.mocked(axios);
+const mockedFs = vi.mocked(fs);
+const mockedGithub = vi.mocked(github);
+const mockedPaths = vi.mocked(paths);
+const mockedConfig = vi.mocked(config);
+const mockedReadline = vi.mocked(createInterface);
 
 describe('Update Command', () => {
   let consoleSpy;
   let processExitSpy;
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     
     // Mock console methods
-    consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-    jest.spyOn(console, 'error').mockImplementation();
+    consoleSpy = vi.spyOn(console, 'log').mockImplementation();
+    vi.spyOn(console, 'error').mockImplementation();
+    vi.spyOn(console, 'warn').mockImplementation();
     
     // Mock process.exit
-    processExitSpy = jest.spyOn(process, 'exit').mockImplementation();
+    processExitSpy = vi.spyOn(process, 'exit').mockImplementation();
     
     // Setup default mocks
     mockedPaths.ensureCommandsDir.mockResolvedValue('/test/commands');
@@ -80,8 +81,8 @@ describe('Update Command', () => {
 
       // Mock user confirmation
       const mockRl = {
-        question: jest.fn((question, callback) => callback('y')),
-        close: jest.fn()
+        question: vi.fn((question, callback) => callback('y')),
+        close: vi.fn()
       };
       mockedReadline.mockReturnValue(mockRl);
 
@@ -128,8 +129,8 @@ describe('Update Command', () => {
       ]);
 
       const mockRl = {
-        question: jest.fn((question, callback) => callback('y')),
-        close: jest.fn()
+        question: vi.fn((question, callback) => callback('y')),
+        close: vi.fn()
       };
       mockedReadline.mockReturnValue(mockRl);
 
@@ -273,8 +274,8 @@ describe('Update Command', () => {
       ]);
 
       const mockRl = {
-        question: jest.fn((question, callback) => callback('y')),
-        close: jest.fn()
+        question: vi.fn((question, callback) => callback('y')),
+        close: vi.fn()
       };
       mockedReadline.mockReturnValue(mockRl);
 
@@ -318,8 +319,8 @@ describe('Update Command', () => {
       mockedGithub.getFileContent.mockResolvedValue('new line 1\nnew line 2');
 
       const mockRl = {
-        question: jest.fn((question, callback) => callback('y')),
-        close: jest.fn()
+        question: vi.fn((question, callback) => callback('y')),
+        close: vi.fn()
       };
       mockedReadline.mockReturnValue(mockRl);
 
@@ -357,8 +358,8 @@ describe('Update Command', () => {
       mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
 
       const mockRl = {
-        question: jest.fn((question, callback) => callback('n')),
-        close: jest.fn()
+        question: vi.fn((question, callback) => callback('n')),
+        close: vi.fn()
       };
       mockedReadline.mockReturnValue(mockRl);
 
@@ -523,8 +524,8 @@ describe('Update Command', () => {
       mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
 
       const mockRl = {
-        question: jest.fn((question, callback) => callback('y')),
-        close: jest.fn()
+        question: vi.fn((question, callback) => callback('y')),
+        close: vi.fn()
       };
       mockedReadline.mockReturnValue(mockRl);
 
