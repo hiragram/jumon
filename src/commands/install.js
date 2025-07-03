@@ -3,6 +3,8 @@ import fs from 'fs-extra';
 import { getFileContent, findMarkdownFiles } from '../utils/github.js';
 import { ensureCommandsDir } from '../utils/paths.js';
 import { loadJumonLock, loadJumonConfig, saveJumonLock } from '../utils/config.js';
+import { parseRepositoryKey, validateRepositoryConfig } from '../utils/repository.js';
+import { handleCommandError, logError, logSuccess, logWarning } from '../utils/errors.js';
 
 export async function installCommand(options) {
   try {
@@ -21,11 +23,16 @@ export async function installCommand(options) {
     
     for (const [repoKey, lockInfo] of Object.entries(lock.repositories)) {
       try {
-        const [user, repo] = repoKey.split('/');
+        const { user, repo } = parseRepositoryKey(repoKey);
         const repoConfig = config.repositories?.[repoKey];
         
         if (!repoConfig) {
-          console.error(`✗ No configuration found for ${repoKey}, skipping`);
+          logError(`No configuration found for ${repoKey}, skipping`);
+          continue;
+        }
+        
+        if (!validateRepositoryConfig(repoConfig)) {
+          logError(`Invalid configuration for ${repoKey}, skipping`);
           continue;
         }
         
@@ -46,11 +53,11 @@ export async function installCommand(options) {
               const targetFile = path.join(targetDir, `${commandName}.md`);
               
               await fs.writeFile(targetFile, content);
-              console.log(`✓ Installed ${commandName}`);
+              logSuccess(`Installed ${commandName}`);
               installedCommands++;
               installedCommandNames.push(commandName);
             } catch (error) {
-              console.error(`✗ Failed to install ${commandDef.name}: ${error.message}`);
+              logError(`Failed to install ${commandDef.name}: ${error.message}`);
             }
           }
         } else {
@@ -64,24 +71,29 @@ export async function installCommand(options) {
                 const targetFile = path.join(targetDir, file.name + '.md');
                 
                 await fs.writeFile(targetFile, content);
-                console.log(`✓ Installed ${file.name}`);
+                logSuccess(`Installed ${file.name}`);
                 installedCommands++;
                 installedCommandNames.push(file.name);
               } catch (error) {
-                console.error(`✗ Failed to install ${file.name}: ${error.message}`);
+                logError(`Failed to install ${file.name}: ${error.message}`);
               }
             }
           } catch (error) {
-            console.error(`✗ Failed to install commands from ${repoKey}: ${error.message}`);
+            logError(`Failed to install commands from ${repoKey}: ${error.message}`);
           }
         }
         
         // Update lock file with actually installed commands
-        lock.repositories[repoKey].only = installedCommandNames;
+        if (lock.repositories[repoKey]) {
+          lock.repositories[repoKey].only = installedCommandNames;
+        } else {
+          // This should not happen normally, but let's be safe
+          logWarning(`Lock file entry for ${repoKey} not found, skipping lock update`);
+        }
         
         totalInstalled += installedCommands;
       } catch (error) {
-        console.error(`✗ Failed to process repository ${repoKey}: ${error.message}`);
+        logError(`Failed to process repository ${repoKey}: ${error.message}`);
       }
     }
     
@@ -92,7 +104,6 @@ export async function installCommand(options) {
     
     console.log(`✓ Installed ${totalInstalled} commands from ${repositoryCount} repositories`);
   } catch (error) {
-    console.error(`Error: ${error.message}`);
-    process.exit(1);
+    handleCommandError(error, 'Install command');
   }
 }

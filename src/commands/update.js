@@ -3,6 +3,8 @@ import fs from 'fs-extra';
 import { resolveRepositoryRevision } from '../utils/github.js';
 import { ensureCommandsDir } from '../utils/paths.js';
 import { loadJumonConfig, loadJumonLock, saveJumonLock } from '../utils/config.js';
+import { parseRepositoryKey, validateRepositoryConfig } from '../utils/repository.js';
+import { handleCommandError, logError, logWarning } from '../utils/errors.js';
 import { installCommand } from './install.js';
 
 
@@ -15,7 +17,13 @@ async function updateLockFile(config, isLocal) {
   
   for (const [repoKey, repoConfig] of Object.entries(config.repositories)) {
     try {
-      const [user, repo] = repoKey.split('/');
+      const { user, repo } = parseRepositoryKey(repoKey);
+      
+      if (!validateRepositoryConfig(repoConfig)) {
+        logError(`Invalid configuration for ${repoKey}, skipping`);
+        continue;
+      }
+      
       const newRevision = await resolveRepositoryRevision(user, repo, repoConfig);
       
       const currentRevision = lock.repositories[repoKey]?.revision;
@@ -32,7 +40,7 @@ async function updateLockFile(config, isLocal) {
         console.log(`${repoKey} is already up to date`);
       }
     } catch (error) {
-      console.error(`✗ Failed to update ${repoKey}: ${error.message}`);
+      logError(`Failed to update ${repoKey}: ${error.message}`);
     }
   }
   
@@ -45,7 +53,7 @@ async function clearCommandsDirectory(config, isLocal) {
   
   // Clear each repository's commands
   for (const repoKey of Object.keys(config.repositories)) {
-    const [user, repo] = repoKey.split('/');
+    const { user, repo } = parseRepositoryKey(repoKey);
     const repoDir = path.join(commandsDir, user, repo);
     
     if (await fs.pathExists(repoDir)) {
@@ -77,7 +85,6 @@ export async function updateCommand(options) {
     console.log('\n🎉 Update complete!');
     
   } catch (error) {
-    console.error(`Error: ${error.message}`);
-    process.exit(1);
+    handleCommandError(error, 'Update command');
   }
 }

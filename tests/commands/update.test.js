@@ -308,7 +308,7 @@ describe('Update Command', () => {
       const options = { global: false };
 
       await expect(updateCommand(options)).rejects.toThrow('process.exit unexpectedly called with "1"');
-      expect(console.error).toHaveBeenCalledWith('Error: Install failed');
+      expect(console.error).toHaveBeenCalledWith('Error in Update command: Install failed');
     });
 
     test('should handle general errors', async () => {
@@ -317,7 +317,7 @@ describe('Update Command', () => {
       const options = { global: false };
 
       await expect(updateCommand(options)).rejects.toThrow('process.exit unexpectedly called with "1"');
-      expect(console.error).toHaveBeenCalledWith('Error: Config corrupted');
+      expect(console.error).toHaveBeenCalledWith('Error in Update command: Config corrupted');
     });
   });
 
