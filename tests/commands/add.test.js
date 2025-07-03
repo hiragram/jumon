@@ -71,7 +71,10 @@ describe('Add Command', () => {
       expect(mockedGithub.getFileContent).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', 'main');
       expect(mockedFs.writeFile).toHaveBeenCalledWith('/test/commands/testuser/testrepo/test.md', '# Test Command\nTest content');
       expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, 'main', true);
-      expect(consoleSpy).toHaveBeenCalledWith("✓ Successfully installed command 'test' to /test/commands/testuser/testrepo/test.md");
+      expect(consoleSpy).toHaveBeenCalledWith('Adding testuser/testrepo/test...');
+      expect(consoleSpy).toHaveBeenCalledWith('✓ Successfully added test');
+      expect(consoleSpy).toHaveBeenCalledWith('Repository: testuser/testrepo @ abc123d');
+      expect(consoleSpy).toHaveBeenCalledWith('Installed to: /test/commands/testuser/testrepo/test.md');
     });
 
     test('should add command with alias', async () => {
@@ -80,7 +83,10 @@ describe('Add Command', () => {
       await addCommand('testuser/testrepo/test', options);
 
       expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', 'custom-name', 'main', true);
-      expect(consoleSpy).toHaveBeenCalledWith("✓ Successfully installed command 'custom-name' to /test/commands/testuser/testrepo/custom-name.md");
+      expect(consoleSpy).toHaveBeenCalledWith('Adding testuser/testrepo/test...');
+      expect(consoleSpy).toHaveBeenCalledWith('✓ Successfully added custom-name');
+      expect(consoleSpy).toHaveBeenCalledWith('Repository: testuser/testrepo @ abc123d');
+      expect(consoleSpy).toHaveBeenCalledWith('Installed to: /test/commands/testuser/testrepo/custom-name.md');
     });
 
     test('should add command globally', async () => {
@@ -156,7 +162,10 @@ describe('Add Command', () => {
       await addCommand('testuser/testrepo/test', options);
 
       expect(processExitSpy).not.toHaveBeenCalled();
-      expect(consoleSpy).toHaveBeenCalledWith("✓ Successfully installed command 'unique-name' to /test/commands/testuser/testrepo/unique-name.md");
+      expect(consoleSpy).toHaveBeenCalledWith('Adding testuser/testrepo/test...');
+      expect(consoleSpy).toHaveBeenCalledWith('✓ Successfully added unique-name');
+      expect(consoleSpy).toHaveBeenCalledWith('Repository: testuser/testrepo @ abc123d');
+      expect(consoleSpy).toHaveBeenCalledWith('Installed to: /test/commands/testuser/testrepo/unique-name.md');
     });
 
     test('should handle repository configuration conflicts with user confirmation', async () => {
@@ -179,7 +188,7 @@ describe('Add Command', () => {
 
       await addCommand('testuser/testrepo/test', options);
 
-      expect(mockRl.question).toHaveBeenCalledWith('Continue? (y/N): ', expect.any(Function));
+      expect(mockRl.question).toHaveBeenCalledWith('\n⚠️  Repository testuser/testrepo is already configured to install ALL commands. Do you want to change it to install only the specific command \'test\'?\nContinue? (y/N): ', expect.any(Function));
       expect(processExitSpy).not.toHaveBeenCalled();
     });
 

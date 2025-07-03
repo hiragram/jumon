@@ -97,6 +97,7 @@ export async function addCommand(repository, options) {
     const isLocal = !options.global;
     const { user, repo, commandPath } = parseRepositoryPath(repository);
     
+    console.log(`Adding ${repository}...`);
     
     // Check for repository configuration conflicts
     const conflict = await checkRepositoryConflict(user, repo, commandPath, isLocal);
@@ -105,6 +106,7 @@ export async function addCommand(repository, options) {
       const answer = await promptUser(`\n⚠️  ${conflict.message}\nContinue? (y/N): `);
       
       if (answer !== 'y' && answer !== 'yes') {
+        console.log('Operation cancelled.');
         return;
       }
     }
@@ -137,7 +139,9 @@ export async function addCommand(repository, options) {
         await addRepositoryToConfig(user, repo, filePath, options.alias, branch, isLocal);
         await addRepositoryToLock(user, repo, revision, filePath, options.alias, isLocal);
         
-        // Command installed successfully
+        console.log(`✓ Successfully added ${commandName}`);
+        console.log(`Repository: ${user}/${repo} @ ${revision.substring(0, 7)}`);
+        console.log(`Installed to: ${targetFile}`);
       } catch (error) {
         console.error(`Error: ${error.message}`);
         process.exit(1);
@@ -173,6 +177,8 @@ export async function addCommand(repository, options) {
       }
       
       
+      console.log(`Installing ${files.length} commands...`);
+      
       const revision = await resolveRepositoryRevision(user, repo, { branch });
       
       for (const file of files) {
@@ -180,8 +186,7 @@ export async function addCommand(repository, options) {
           const content = await getFileContent(user, repo, file.path, branch);
           const targetFile = path.join(targetDir, file.name + '.md');
           await fs.writeFile(targetFile, content);
-          
-          // Command installed successfully
+          console.log(`✓ Installed ${file.name}`);
         } catch (error) {
           console.error(`✗ Failed to install ${file.name}: ${error.message}`);
         }
@@ -189,7 +194,8 @@ export async function addCommand(repository, options) {
       
       await addRepositoryToConfig(user, repo, null, null, branch, isLocal);
       await addRepositoryToLock(user, repo, revision, null, null, isLocal);
-      // All commands installed successfully
+      
+      console.log(`\n✓ Successfully added ${files.length} commands from ${user}/${repo}`);
     }
   } catch (error) {
     console.error(`Error: ${error.message}`);
