@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/hiragram/cccsc/compare/v0.3.0...v0.3.1) (2025-07-03)
+
+
+### Bug Fixes
+
+* update CI workflow and tests for cccsc command name ([2db2916](https://github.com/hiragram/cccsc/commit/2db29164e6fda9c41bad431829f92fa44677db5f))
+
 ## 0.3.0 (2025-07-03)
 
 
