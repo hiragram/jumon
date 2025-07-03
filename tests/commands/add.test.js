@@ -216,6 +216,15 @@ describe('Add Command', () => {
       expect(console.error).toHaveBeenCalledWith('Error: File not found');
     });
 
+    test('should handle nonexistent branch error', async () => {
+      mockedGithub.getFileContent.mockRejectedValue(new Error('Repository testuser/testrepo not found, path test.md does not exist, or branch \'nonexistent\' does not exist'));
+
+      const options = { global: false, branch: 'nonexistent' };
+
+      await expect(addCommand('testuser/testrepo/test', options)).rejects.toThrow('process.exit unexpectedly called with "1"');
+      expect(console.error).toHaveBeenCalledWith('Error: Repository testuser/testrepo not found, path test.md does not exist, or branch \'nonexistent\' does not exist');
+    });
+
     test('should handle empty repository', async () => {
       mockedGithub.parseRepositoryPath.mockReturnValue({
         user: 'testuser',
@@ -261,6 +270,21 @@ describe('Add Command', () => {
 
       await expect(addCommand('testuser/testrepo/test', options)).rejects.toThrow('process.exit unexpectedly called with "1"');
       expect(console.error).toHaveBeenCalledWith('Error: Permission denied');
+    });
+
+    test('should handle nonexistent branch when installing all commands', async () => {
+      mockedGithub.parseRepositoryPath.mockReturnValue({
+        user: 'testuser',
+        repo: 'testrepo',
+        commandPath: null
+      });
+      
+      mockedGithub.findMarkdownFiles.mockRejectedValue(new Error('Repository testuser/testrepo not found, path  does not exist, or branch \'feature\' does not exist'));
+
+      const options = { global: false, branch: 'feature' };
+
+      await expect(addCommand('testuser/testrepo', options)).rejects.toThrow('process.exit unexpectedly called with "1"');
+      expect(console.error).toHaveBeenCalledWith('Error: Repository testuser/testrepo not found, path  does not exist, or branch \'feature\' does not exist');
     });
   });
 
