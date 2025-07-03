@@ -91,7 +91,7 @@ describe('Update Command', () => {
       await updateCommand(options);
 
       expect(mockedGithub.getLatestCommitHash).toHaveBeenCalledWith('user', 'repo', 'main');
-      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user', 'repo', 'cmd1.md');
+      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user', 'repo', 'cmd1.md', 'main');
       expect(mockedFs.writeFile).toHaveBeenCalledWith('/test/commands/user/repo/cmd1.md', 'new content');
       expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining('🎉 Update complete!'));
     });
@@ -283,9 +283,9 @@ describe('Update Command', () => {
 
       await updateCommand(options);
 
-      expect(mockedGithub.findMarkdownFiles).toHaveBeenCalledWith('user', 'repo');
-      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user', 'repo', 'cmd1.md');
-      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user', 'repo', 'cmd2.md');
+      expect(mockedGithub.findMarkdownFiles).toHaveBeenCalledWith('user', 'repo', '', 'main');
+      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user', 'repo', 'cmd1.md', 'main');
+      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user', 'repo', 'cmd2.md', 'main');
     });
   });
 
@@ -449,7 +449,7 @@ describe('Update Command', () => {
       await updateCommand(options);
 
       expect(console.warn).toHaveBeenCalledWith('Failed to resolve version 1.0.0 for user/repo, falling back to latest commit');
-      expect(mockedGithub.getLatestCommitHash).toHaveBeenCalledWith('user', 'repo');
+      expect(mockedGithub.getLatestCommitHash).toHaveBeenCalledWith('user', 'repo', 'main');
     });
 
     test('should handle file content fetch errors', async () => {
@@ -626,7 +626,7 @@ describe('Update Command', () => {
       await updateCommand(options);
 
       expect(console.warn).toHaveBeenCalledWith('Failed to resolve tag nonexistent for user/repo, falling back to latest commit');
-      expect(mockedGithub.getLatestCommitHash).toHaveBeenCalledWith('user', 'repo');
+      expect(mockedGithub.getLatestCommitHash).toHaveBeenCalledWith('user', 'repo', 'main');
     });
   });
 });

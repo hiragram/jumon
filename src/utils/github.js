@@ -31,11 +31,13 @@ export async function getLatestCommitHash(user, repo, branch = 'main') {
   }
 }
 
-export async function getRepositoryContents(user, repo, path = '') {
+export async function getRepositoryContents(user, repo, path = '', branch = 'main') {
   const url = `https://api.github.com/repos/${user}/${repo}/contents/${path}`;
   
   try {
-    const response = await axios.get(url);
+    const response = await axios.get(url, {
+      params: { ref: branch }
+    });
     return response.data;
   } catch (error) {
     if (error.response?.status === 404) {
@@ -45,9 +47,9 @@ export async function getRepositoryContents(user, repo, path = '') {
   }
 }
 
-export async function getFileContent(user, repo, filePath) {
+export async function getFileContent(user, repo, filePath, branch = 'main') {
   try {
-    const contents = await getRepositoryContents(user, repo, filePath);
+    const contents = await getRepositoryContents(user, repo, filePath, branch);
     
     if (contents.type !== 'file') {
       throw new Error(`${filePath} is not a file`);
@@ -60,11 +62,11 @@ export async function getFileContent(user, repo, filePath) {
   }
 }
 
-export async function findMarkdownFiles(user, repo, basePath = '') {
+export async function findMarkdownFiles(user, repo, basePath = '', branch = 'main') {
   const files = [];
   
   try {
-    const contents = await getRepositoryContents(user, repo, basePath);
+    const contents = await getRepositoryContents(user, repo, basePath, branch);
     
     for (const item of contents) {
       if (item.type === 'file' && item.name.endsWith('.md')) {
@@ -76,7 +78,7 @@ export async function findMarkdownFiles(user, repo, basePath = '') {
         });
       } else if (item.type === 'dir') {
         const subPath = basePath ? `${basePath}/${item.name}` : item.name;
-        const subFiles = await findMarkdownFiles(user, repo, subPath);
+        const subFiles = await findMarkdownFiles(user, repo, subPath, branch);
         files.push(...subFiles);
       }
     }

@@ -131,13 +131,13 @@ export async function addCommand(repository, options) {
       }
       
       try {
-        const content = await getFileContent(user, repo, filePath);
+        const branch = options.branch || 'main';
+        const content = await getFileContent(user, repo, filePath, branch);
         const targetFile = path.join(targetDir, `${commandName}.md`);
         await fs.writeFile(targetFile, content);
         
-        const revision = await getLatestCommitHash(user, repo);
+        const revision = await getLatestCommitHash(user, repo, branch);
         
-        const branch = options.branch || 'main';
         await addRepositoryToConfig(user, repo, filePath, options.alias, branch, isLocal);
         await addRepositoryToLock(user, repo, revision, filePath, isLocal);
         
@@ -148,7 +148,8 @@ export async function addCommand(repository, options) {
         process.exit(1);
       }
     } else {
-      const files = await findMarkdownFiles(user, repo);
+      const branch = options.branch || 'main';
+      const files = await findMarkdownFiles(user, repo, '', branch);
       
       if (files.length === 0) {
         console.error(`No markdown files found in ${user}/${repo}`);
@@ -178,11 +179,11 @@ export async function addCommand(repository, options) {
       
       console.log(`Installing ${files.length} commands...`);
       
-      const revision = await getLatestCommitHash(user, repo);
+      const revision = await getLatestCommitHash(user, repo, branch);
       
       for (const file of files) {
         try {
-          const content = await getFileContent(user, repo, file.path);
+          const content = await getFileContent(user, repo, file.path, branch);
           const targetFile = path.join(targetDir, file.name + '.md');
           await fs.writeFile(targetFile, content);
           
@@ -192,7 +193,6 @@ export async function addCommand(repository, options) {
         }
       }
       
-      const branch = options.branch || 'main';
       await addRepositoryToConfig(user, repo, null, null, branch, isLocal);
       await addRepositoryToLock(user, repo, revision, null, isLocal);
       console.log(`✓ Successfully installed ${files.length} commands from ${user}/${repo}`);

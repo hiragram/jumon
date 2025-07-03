@@ -29,6 +29,7 @@ export async function installCommand(options) {
           continue;
         }
         
+        const branch = repoConfig.branch || 'main';
         const targetDir = path.join(commandsDir, user, repo);
         await fs.ensureDir(targetDir);
         
@@ -39,7 +40,7 @@ export async function installCommand(options) {
           for (const commandDef of repoConfig.only) {
             try {
               const filePath = commandDef.path.endsWith('.md') ? commandDef.path : `${commandDef.path}.md`;
-              const content = await getFileContent(user, repo, filePath);
+              const content = await getFileContent(user, repo, filePath, branch);
               const commandName = commandDef.alias || commandDef.name;
               const targetFile = path.join(targetDir, `${commandName}.md`);
               
@@ -53,11 +54,11 @@ export async function installCommand(options) {
         } else {
           // Install all commands from repository
           try {
-            const files = await findMarkdownFiles(user, repo);
+            const files = await findMarkdownFiles(user, repo, '', branch);
             
             for (const file of files) {
               try {
-                const content = await getFileContent(user, repo, file.path);
+                const content = await getFileContent(user, repo, file.path, branch);
                 const targetFile = path.join(targetDir, file.name + '.md');
                 
                 await fs.writeFile(targetFile, content);

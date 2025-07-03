@@ -7,32 +7,36 @@ import { ensureCommandsDir } from '../utils/paths.js';
 import { loadJumonConfig, loadJumonLock, saveJumonLock } from '../utils/config.js';
 
 async function resolveRepositoryRevision(user, repo, repoConfig) {
+  const branch = repoConfig.branch || 'main';
+  
   if (repoConfig.version) {
     // For now, treat version as a tag. In the future, this could resolve version ranges
     const tagName = repoConfig.version.replace(/^[~^>=<\s]+/, ''); // Strip version operators
     try {
       // Try to get commit hash for the tag
       const response = await axios.get(`https://api.github.com/repos/${user}/${repo}/git/refs/tags/${tagName}`);
-      return response.data.object.sha;
+      return { revision: response.data.object.sha, branch };
     } catch (error) {
       console.warn(`Failed to resolve version ${repoConfig.version} for ${user}/${repo}, falling back to latest commit`);
     }
-    // Fallback to latest commit on main branch
-    return await getLatestCommitHash(user, repo);
+    // Fallback to latest commit on specified branch
+    const revision = await getLatestCommitHash(user, repo, branch);
+    return { revision, branch };
   } else if (repoConfig.tag) {
     // Get commit hash for specific tag
     try {
       const response = await axios.get(`https://api.github.com/repos/${user}/${repo}/git/refs/tags/${repoConfig.tag}`);
-      return response.data.object.sha;
+      return { revision: response.data.object.sha, branch };
     } catch (error) {
       console.warn(`Failed to resolve tag ${repoConfig.tag} for ${user}/${repo}, falling back to latest commit`);
     }
-    // Fallback to latest commit on main branch
-    return await getLatestCommitHash(user, repo);
+    // Fallback to latest commit on specified branch
+    const revision = await getLatestCommitHash(user, repo, branch);
+    return { revision, branch };
   } else {
     // Use specific branch or default to main
-    const branch = repoConfig.branch || 'main';
-    return await getLatestCommitHash(user, repo, branch);
+    const revision = await getLatestCommitHash(user, repo, branch);
+    return { revision, branch };
   }
 }
 
@@ -83,7 +87,7 @@ function createSimpleDiff(oldContent, newContent, filename) {
   return diff.length > 3 ? diff : null;
 }
 
-async function previewRepositoryChanges(user, repo, repoConfig, lockInfo, isLocal) {
+async function previewRepositoryChanges(user, repo, repoConfig, lockInfo, isLocal, branch) {
   const commandsDir = await ensureCommandsDir(isLocal);
   const targetDir = path.join(commandsDir, user, repo);
   
@@ -95,7 +99,7 @@ async function previewRepositoryChanges(user, repo, repoConfig, lockInfo, isLoca
     for (const commandDef of repoConfig.only) {
       try {
         const filePath = commandDef.path.endsWith('.md') ? commandDef.path : `${commandDef.path}.md`;
-        const newContent = await getFileContent(user, repo, filePath);
+        const newContent = await getFileContent(user, repo, filePath, branch);
         const localFile = path.join(targetDir, `${commandDef.name}.md`);
         
         let oldContent = '';
@@ -124,7 +128,7 @@ async function previewRepositoryChanges(user, repo, repoConfig, lockInfo, isLoca
     }
   } else {
     // Check all commands from repository
-    const files = await findMarkdownFiles(user, repo);
+    const files = await findMarkdownFiles(user, repo, '', branch);
     const onlyCommands = lockInfo?.only || [];
     
     const filesToCheck = onlyCommands.length > 0 
@@ -133,7 +137,7 @@ async function previewRepositoryChanges(user, repo, repoConfig, lockInfo, isLoca
     
     for (const file of filesToCheck) {
       try {
-        const newContent = await getFileContent(user, repo, file.path);
+        const newContent = await getFileContent(user, repo, file.path, branch);
         const localFile = path.join(targetDir, file.name + '.md');
         
         let oldContent = '';
@@ -205,7 +209,7 @@ export async function updateCommand(options) {
         console.log(`Checking ${repoKey}...`);
         
         // Resolve the target revision based on version/branch/tag
-        const newRevision = await resolveRepositoryRevision(user, repo, repoConfig);
+        const { revision: newRevision, branch } = await resolveRepositoryRevision(user, repo, repoConfig);
         
         // Check if we need to update
         const existingLockInfo = lock.repositories?.[repoKey];
@@ -219,7 +223,7 @@ export async function updateCommand(options) {
         console.log(`  Revision change: ${currentRevision?.substring(0, 7) || 'unknown'} → ${newRevision.substring(0, 7)}`);
         
         // Preview changes
-        const { changes, filesToUpdate } = await previewRepositoryChanges(user, repo, repoConfig, existingLockInfo, isLocal);
+        const { changes, filesToUpdate } = await previewRepositoryChanges(user, repo, repoConfig, existingLockInfo, isLocal, branch);
         
         if (changes.length === 0) {
           console.log(`  No file changes detected`);
