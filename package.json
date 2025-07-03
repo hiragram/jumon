@@ -1,6 +1,6 @@
 {
   "name": "cccsc",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Claude Code custom slash commands package manager",
   "main": "index.js",
   "bin": {
