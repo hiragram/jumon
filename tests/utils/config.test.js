@@ -21,9 +21,9 @@ const mockedPaths = vi.mocked(paths);
 describe('Config Utils', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPaths.getJumonConfigPath.mockReturnValue('/test/cccsc.json');
-    mockedPaths.getJumonLockPath.mockReturnValue('/test/cccsc-lock.json');
-    mockedPaths.ensureJumonConfigDir.mockResolvedValue();
+    mockedPaths.getCccscConfigPath.mockReturnValue('/test/cccsc.json');
+    mockedPaths.getCccscLockPath.mockReturnValue('/test/cccsc-lock.json');
+    mockedPaths.ensureCccscConfigDir.mockResolvedValue();
   });
 
   describe('loadCccscConfig', () => {
@@ -42,7 +42,7 @@ describe('Config Utils', () => {
       const result = await loadCccscConfig(true);
 
       expect(result).toEqual(mockConfig);
-      expect(mockedPaths.getJumonConfigPath).toHaveBeenCalledWith(true);
+      expect(mockedPaths.getCccscConfigPath).toHaveBeenCalledWith(true);
       expect(mockedFs.pathExists).toHaveBeenCalledWith('/test/cccsc.json');
       expect(mockedFs.readJson).toHaveBeenCalledWith('/test/cccsc.json');
     });
@@ -53,7 +53,7 @@ describe('Config Utils', () => {
       const result = await loadCccscConfig(false);
 
       expect(result).toEqual({ repositories: {} });
-      expect(mockedPaths.getJumonConfigPath).toHaveBeenCalledWith(false);
+      expect(mockedPaths.getCccscConfigPath).toHaveBeenCalledWith(false);
     });
 
     test('should handle read errors gracefully', async () => {
@@ -81,8 +81,8 @@ describe('Config Utils', () => {
 
       await saveCccscConfig(config, true);
 
-      expect(mockedPaths.ensureJumonConfigDir).toHaveBeenCalledWith(true);
-      expect(mockedPaths.getJumonConfigPath).toHaveBeenCalledWith(true);
+      expect(mockedPaths.ensureCccscConfigDir).toHaveBeenCalledWith(true);
+      expect(mockedPaths.getCccscConfigPath).toHaveBeenCalledWith(true);
       expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/cccsc.json', config, { spaces: 2 });
     });
   });
@@ -105,7 +105,7 @@ describe('Config Utils', () => {
       const result = await loadCccscLock(false);
 
       expect(result).toEqual(mockLock);
-      expect(mockedPaths.getJumonLockPath).toHaveBeenCalledWith(false);
+      expect(mockedPaths.getCccscLockPath).toHaveBeenCalledWith(false);
     });
 
     test('should return default lock when file does not exist', async () => {
@@ -129,8 +129,8 @@ describe('Config Utils', () => {
 
       await saveCccscLock(lock, false);
 
-      expect(mockedPaths.ensureJumonConfigDir).toHaveBeenCalledWith(false);
-      expect(mockedPaths.getJumonLockPath).toHaveBeenCalledWith(false);
+      expect(mockedPaths.ensureCccscConfigDir).toHaveBeenCalledWith(false);
+      expect(mockedPaths.getCccscLockPath).toHaveBeenCalledWith(false);
       expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/cccsc-lock.json', lock, { spaces: 2 });
     });
   });
