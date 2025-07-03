@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.2](https://github.com/hiragram/cccsc/compare/v0.3.1...v0.3.2) (2025-07-03)
+
+
+### Bug Fixes
+
+* update README.md samples to match actual implementation ([c8eec6e](https://github.com/hiragram/cccsc/commit/c8eec6ee11f8eff74a4b156f64c8b5e1321877aa))
+* update README.md samples to match actual implementation ([7103ce7](https://github.com/hiragram/cccsc/commit/7103ce77d8fe3f96590338d7e5180d3f4dd1a20a))
+
 ## [0.3.1](https://github.com/hiragram/cccsc/compare/v0.3.0...v0.3.1) (2025-07-03)
 
 
