@@ -91,3 +91,28 @@ export async function findMarkdownFiles(user, repo, basePath = '', branch = 'mai
     throw new Error(`Failed to find markdown files: ${error.message}`);
   }
 }
+
+export async function resolveRepositoryRevision(user, repo, repoConfig) {
+  const branch = repoConfig.branch || 'main';
+  
+  if (repoConfig.version) {
+    const tagName = repoConfig.version.replace(/^[~^>=<\s]+/, '');
+    try {
+      const response = await axios.get(`https://api.github.com/repos/${user}/${repo}/git/refs/tags/${tagName}`);
+      return response.data.object.sha;
+    } catch (error) {
+      console.warn(`Failed to resolve version ${repoConfig.version} for ${user}/${repo}, falling back to latest commit`);
+    }
+    return await getLatestCommitHash(user, repo, branch);
+  } else if (repoConfig.tag) {
+    try {
+      const response = await axios.get(`https://api.github.com/repos/${user}/${repo}/git/refs/tags/${repoConfig.tag}`);
+      return response.data.object.sha;
+    } catch (error) {
+      console.warn(`Failed to resolve tag ${repoConfig.tag} for ${user}/${repo}, falling back to latest commit`);
+    }
+    return await getLatestCommitHash(user, repo, branch);
+  } else {
+    return await getLatestCommitHash(user, repo, branch);
+  }
+}

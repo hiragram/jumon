@@ -1,41 +1,10 @@
 import path from 'path';
 import fs from 'fs-extra';
-import axios from 'axios';
-import { getLatestCommitHash } from '../utils/github.js';
+import { resolveRepositoryRevision } from '../utils/github.js';
 import { ensureCommandsDir } from '../utils/paths.js';
 import { loadJumonConfig, loadJumonLock, saveJumonLock } from '../utils/config.js';
 import { installCommand } from './install.js';
 
-async function resolveRepositoryRevision(user, repo, repoConfig) {
-  const branch = repoConfig.branch || 'main';
-  
-  if (repoConfig.version) {
-    // For now, treat version as a tag. In the future, this could resolve version ranges
-    const tagName = repoConfig.version.replace(/^[~^>=<\s]+/, ''); // Strip version operators
-    try {
-      // Try to get commit hash for the tag
-      const response = await axios.get(`https://api.github.com/repos/${user}/${repo}/git/refs/tags/${tagName}`);
-      return response.data.object.sha;
-    } catch (error) {
-      console.warn(`Failed to resolve version ${repoConfig.version} for ${user}/${repo}, falling back to latest commit`);
-    }
-    // Fallback to latest commit on specified branch
-    return await getLatestCommitHash(user, repo, branch);
-  } else if (repoConfig.tag) {
-    // Get commit hash for specific tag
-    try {
-      const response = await axios.get(`https://api.github.com/repos/${user}/${repo}/git/refs/tags/${repoConfig.tag}`);
-      return response.data.object.sha;
-    } catch (error) {
-      console.warn(`Failed to resolve tag ${repoConfig.tag} for ${user}/${repo}, falling back to latest commit`);
-    }
-    // Fallback to latest commit on specified branch
-    return await getLatestCommitHash(user, repo, branch);
-  } else {
-    // Use specific branch or default to main
-    return await getLatestCommitHash(user, repo, branch);
-  }
-}
 
 async function updateLockFile(config, isLocal) {
   const lock = await loadJumonLock(isLocal);
@@ -103,7 +72,7 @@ export async function updateCommand(options) {
     await clearCommandsDirectory(config, isLocal);
     
     console.log('Reinstalling commands...');
-    await installCommand(options);
+    await installCommand({ ...options, skipLockFileSave: true });
     
     console.log('\n🎉 Update complete!');
     

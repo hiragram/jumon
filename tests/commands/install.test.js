@@ -221,6 +221,78 @@ describe('Install Command', () => {
       expect(mockedFs.writeFile).toHaveBeenCalledWith('/test/commands/user/repo/cmd1.md', '# Test Command\nContent');
       expect(mockedFs.writeFile).toHaveBeenCalledWith('/test/commands/user/repo/cmd2.md', '# Test Command\nContent');
     });
+
+    test('should skip lock file save when skipLockFileSave option is true', async () => {
+      const mockLock = {
+        lockfileVersion: 1,
+        repositories: {
+          'user/repo': {
+            revision: 'abc123',
+            only: ['cmd']
+          }
+        }
+      };
+
+      const mockConfig = {
+        repositories: {
+          'user/repo': {
+            only: [
+              { name: 'cmd', path: 'cmd.md', alias: null }
+            ]
+          }
+        }
+      };
+
+      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
+      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+
+      const options = { global: false, skipLockFileSave: true };
+
+      await installCommand(options);
+
+      expect(mockedConfig.saveJumonLock).not.toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalledWith('✓ Installed cmd');
+    });
+
+    test('should save lock file by default when skipLockFileSave is not specified', async () => {
+      const mockLock = {
+        lockfileVersion: 1,
+        repositories: {
+          'user/repo': {
+            revision: 'abc123',
+            only: ['cmd']
+          }
+        }
+      };
+
+      const mockConfig = {
+        repositories: {
+          'user/repo': {
+            only: [
+              { name: 'cmd', path: 'cmd.md', alias: null }
+            ]
+          }
+        }
+      };
+
+      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
+      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+
+      const options = { global: false };
+
+      await installCommand(options);
+
+      expect(mockedConfig.saveJumonLock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          repositories: expect.objectContaining({
+            'user/repo': expect.objectContaining({
+              only: ['cmd']
+            })
+          })
+        }),
+        true
+      );
+    });
   });
 
   describe('error handling', () => {

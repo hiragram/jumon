@@ -85,8 +85,10 @@ export async function installCommand(options) {
       }
     }
     
-    // Save updated lock file
-    await saveJumonLock(lock, isLocal);
+    // Save updated lock file (unless skipped)
+    if (!options.skipLockFileSave) {
+      await saveJumonLock(lock, isLocal);
+    }
     
     console.log(`✓ Installed ${totalInstalled} commands from ${repositoryCount} repositories`);
   } catch (error) {
