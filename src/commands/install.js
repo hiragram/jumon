@@ -85,18 +85,28 @@ export async function installCommand(options) {
         
         // Update lock file with actually installed commands
         if (lock.repositories[repoKey]) {
-          const config = await loadCccscConfig(isLocal);
-          const repoConfig = config.repositories?.[repoKey];
-          
-          if (repoConfig?.only && repoConfig.only.length > 0) {
-            // Use config information to preserve alias
-            lock.repositories[repoKey].only = repoConfig.only.map(cmd => ({
-              name: cmd.name,
-              path: cmd.path,
-              alias: cmd.alias
-            }));
-          } else {
-            // Fallback for commands installed without config
+          try {
+            const config = await loadCccscConfig(isLocal);
+            const repoConfig = config.repositories?.[repoKey];
+            
+            if (repoConfig?.only && repoConfig.only.length > 0) {
+              // Use config information to preserve alias
+              lock.repositories[repoKey].only = repoConfig.only.map(cmd => ({
+                name: cmd.name,
+                path: cmd.path,
+                alias: cmd.alias
+              }));
+            } else {
+              // Fallback for commands installed without config
+              lock.repositories[repoKey].only = installedCommandNames.map(name => ({
+                name: name,
+                path: `${name}.md`,
+                alias: null
+              }));
+            }
+          } catch (error) {
+            logError(`Failed to load config: ${error.message}`);
+            // Fallback: use installed command names
             lock.repositories[repoKey].only = installedCommandNames.map(name => ({
               name: name,
               path: `${name}.md`,

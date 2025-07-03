@@ -1,7 +1,7 @@
 import fs from 'fs-extra';
 import { getCccscConfigPath, getCccscLockPath, ensureCccscConfigDir } from './paths.js';
 import { parseRepositoryPath } from './github.js';
-import { findCommandIndex } from './lock-helpers.js';
+import { findCommandIndex, extractCommandName, migrateLockfileData } from './lock-helpers.js';
 
 // Current lockfile version for npm compatibility
 const CURRENT_LOCKFILE_VERSION = 3;
@@ -33,7 +33,9 @@ export async function loadCccscLock(isLocal = false) {
   
   try {
     if (await fs.pathExists(lockPath)) {
-      return await fs.readJson(lockPath);
+      const lockData = await fs.readJson(lockPath);
+      // Automatically migrate legacy data to new format
+      return migrateLockfileData(lockData);
     }
   } catch (error) {
     console.warn(`Failed to load cccsc-lock.json: ${error.message}`);
@@ -73,7 +75,7 @@ export async function addRepositoryToConfig(user, repo, commandPath = null, alia
   
   if (commandPath) {
     // Add specific command
-    const originalName = commandPath.split('/').pop().replace('.md', '');
+    const originalName = extractCommandName(commandPath);
     const existingCommand = config.repositories[repoKey].only.find(cmd => cmd.path === commandPath);
     
     if (!existingCommand) {
@@ -118,7 +120,7 @@ export async function addRepositoryToLock(user, repo, revision, commandPath = nu
   
   // Add new command to "only" list if specified
   if (commandPath) {
-    const commandName = commandPath.split('/').pop().replace('.md', '');
+    const commandName = extractCommandName(commandPath);
     // Handle backward compatibility: legacy lockfiles may contain string arrays
     // while new lockfiles contain object arrays with {name, path, alias} structure
     const existingCommandIndex = findCommandIndex(repoEntry.only, commandName);
