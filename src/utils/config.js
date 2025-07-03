@@ -1,8 +1,6 @@
-import fs from 'fs-extra';
 import { getCccscConfigPath, getCccscLockPath, ensureCccscConfigDir } from './paths.js';
-import { parseRepositoryPath } from './github.js';
 import { findCommandIndex, extractCommandName, migrateLockfileData } from './lock-helpers.js';
-import { validateCommandParams } from './command-params.js';
+import { readJsonFile, writeJsonFile } from './filesystem.js';
 
 // Current lockfile version for npm compatibility
 const CURRENT_LOCKFILE_VERSION = 3;
@@ -10,48 +8,35 @@ const CURRENT_LOCKFILE_VERSION = 3;
 export async function loadCccscConfig(isLocal = false) {
   const configPath = getCccscConfigPath(isLocal);
   
-  try {
-    if (await fs.pathExists(configPath)) {
-      return await fs.readJson(configPath);
-    }
-  } catch (error) {
-    console.warn(`Failed to load cccsc.json: ${error.message}`);
-  }
-  
-  return {
+  const config = await readJsonFile(configPath, {
     repositories: {}
-  };
+  });
+  
+  return config;
 }
 
 export async function saveCccscConfig(config, isLocal = false) {
   await ensureCccscConfigDir(isLocal);
   const configPath = getCccscConfigPath(isLocal);
-  await fs.writeJson(configPath, config, { spaces: 2 });
+  await writeJsonFile(configPath, config, { spaces: 2 });
 }
 
 export async function loadCccscLock(isLocal = false) {
   const lockPath = getCccscLockPath(isLocal);
   
-  try {
-    if (await fs.pathExists(lockPath)) {
-      const lockData = await fs.readJson(lockPath);
-      // Automatically migrate legacy data to new format
-      return migrateLockfileData(lockData);
-    }
-  } catch (error) {
-    console.warn(`Failed to load cccsc-lock.json: ${error.message}`);
-  }
-  
-  return {
+  const lockData = await readJsonFile(lockPath, {
     lockfileVersion: CURRENT_LOCKFILE_VERSION,
     repositories: {}
-  };
+  });
+  
+  // Automatically migrate legacy data to new format
+  return migrateLockfileData(lockData);
 }
 
 export async function saveCccscLock(lock, isLocal = false) {
   await ensureCccscConfigDir(isLocal);
   const lockPath = getCccscLockPath(isLocal);
-  await fs.writeJson(lockPath, lock, { spaces: 2 });
+  await writeJsonFile(lockPath, lock, { spaces: 2 });
 }
 
 export async function addRepositoryToConfig(user, repo, commandPath = null, alias = null, branch = null, isLocal = false) {

@@ -4,9 +4,11 @@ import { getFileContent, findMarkdownFiles } from '../utils/github.js';
 import { ensureCommandsDir } from '../utils/paths.js';
 import { loadCccscLock, loadCccscConfig, saveCccscLock } from '../utils/config.js';
 import { parseRepositoryKey, validateRepositoryConfig } from '../utils/repository.js';
-import { handleCommandError, logError, logSuccess, logWarning } from '../utils/errors.js';
-import { ErrorTypes, classifyError, createDetailedError } from '../utils/error-types.js';
+import { logError, logSuccess, logWarning } from '../utils/errors.js';
+import { ErrorTypes } from '../utils/error-types.js';
 import { createCommandObjectsFromNames } from '../utils/lock-helpers.js';
+import { CommandError, handleCommandError as handleError } from '../utils/command-error.js';
+import { writeTextFile } from '../utils/filesystem.js';
 
 export async function installCommand(options) {
   try {
@@ -17,28 +19,30 @@ export async function installCommand(options) {
     try {
       config = await loadCccscConfig(isLocal);
     } catch (error) {
-      const detailedError = createDetailedError(error, 'config-load', { isLocal });
-      
-      switch (detailedError.type) {
-        case ErrorTypes.CONFIG_PARSE_ERROR:
-          logError(`Config file is corrupted (JSON parse error): ${detailedError.message}`);
-          logError('Please check your cccsc.json file for syntax errors.');
-          process.exit(1);
-          break;
-        case ErrorTypes.PERMISSION_ERROR:
-          logError(`Permission denied reading config file: ${detailedError.message}`);
-          logError('Please check file permissions for cccsc.json');
-          process.exit(1);
-          break;
-        case ErrorTypes.FILE_NOT_FOUND:
-          logWarning('Config file not found, using empty config');
-          config = { repositories: {} };
-          break;
-        default:
-          logError(`Unexpected error loading config: ${detailedError.message} (Type: ${detailedError.type})`);
-          logError('Using empty config as fallback');
-          config = { repositories: {} };
-          break;
+      if (error instanceof CommandError) {
+        switch (error.type) {
+          case ErrorTypes.CONFIG_PARSE_ERROR:
+            logError(`Config file is corrupted (JSON parse error): ${error.message}`);
+            logError('Please check your cccsc.json file for syntax errors.');
+            process.exit(1);
+            break;
+          case ErrorTypes.PERMISSION_ERROR:
+            logError(`Permission denied reading config file: ${error.message}`);
+            logError('Please check file permissions for cccsc.json');
+            process.exit(1);
+            break;
+          case ErrorTypes.FILE_NOT_FOUND:
+            logWarning('Config file not found, using empty config');
+            config = { repositories: {} };
+            break;
+          default:
+            logError(`Unexpected error loading config: ${error.message} (Type: ${error.type})`);
+            logError('Using empty config as fallback');
+            config = { repositories: {} };
+            break;
+        }
+      } else {
+        throw CommandError.fromError(error, ErrorTypes.CONFIG_READ_ERROR, { isLocal });
       }
     }
     
@@ -73,7 +77,7 @@ export async function installCommand(options) {
         await fs.ensureDir(targetDir);
         
         let installedCommands = 0;
-        let installedCommandNames = [];
+        const installedCommandNames = [];
         
         if (repoConfig.only && repoConfig.only.length > 0) {
           // Install specific commands
@@ -84,7 +88,7 @@ export async function installCommand(options) {
               const commandName = commandDef.alias || commandDef.name;
               const targetFile = path.join(targetDir, `${commandName}.md`);
               
-              await fs.writeFile(targetFile, content);
+              await writeTextFile(targetFile, content);
               logSuccess(`Installed ${commandName}`);
               installedCommands++;
               installedCommandNames.push(commandDef.name);
@@ -102,7 +106,7 @@ export async function installCommand(options) {
                 const content = await getFileContent(user, repo, file.path, branch);
                 const targetFile = path.join(targetDir, file.name + '.md');
                 
-                await fs.writeFile(targetFile, content);
+                await writeTextFile(targetFile, content);
                 logSuccess(`Installed ${file.name}`);
                 installedCommands++;
                 installedCommandNames.push(file.name);
@@ -148,6 +152,6 @@ export async function installCommand(options) {
     
     console.log(`✓ Installed ${totalInstalled} commands from ${repositoryCount} repositories`);
   } catch (error) {
-    handleCommandError(error, 'Install command');
+    handleError(error, 'Install command');
   }
 }

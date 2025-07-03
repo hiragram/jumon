@@ -3,7 +3,6 @@ import fs from 'fs-extra';
 import { parseRepositoryPath, getFileContent, findMarkdownFiles, resolveRepositoryRevision } from '../utils/github.js';
 import { ensureCommandsDir } from '../utils/paths.js';
 import { addRepositoryToConfig, addRepositoryToLock, loadCccscConfig } from '../utils/config.js';
-import { parseRepositoryKey } from '../utils/repository.js';
 import { createInterface } from 'readline';
 
 async function checkCommandConflict(commandName, targetDir) {
