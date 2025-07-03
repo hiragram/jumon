@@ -2,6 +2,9 @@ import fs from 'fs-extra';
 import { getCccscConfigPath, getCccscLockPath, ensureCccscConfigDir } from './paths.js';
 import { parseRepositoryPath } from './github.js';
 
+// Current lockfile version for npm compatibility
+const CURRENT_LOCKFILE_VERSION = 3;
+
 export async function loadCccscConfig(isLocal = false) {
   const configPath = getCccscConfigPath(isLocal);
   
@@ -36,7 +39,7 @@ export async function loadCccscLock(isLocal = false) {
   }
   
   return {
-    lockfileVersion: 1,
+    lockfileVersion: CURRENT_LOCKFILE_VERSION,
     repositories: {}
   };
 }

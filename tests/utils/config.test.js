@@ -114,7 +114,7 @@ describe('Config Utils', () => {
       const result = await loadCccscLock(true);
 
       expect(result).toEqual({
-        lockfileVersion: 1,
+        lockfileVersion: 3,
         repositories: {}
       });
     });
