@@ -20,6 +20,9 @@ npx cccsc add user/repo/commandName --alias my-command
 
 # Add to global commands
 npx cccsc add user/repo/commandName --global
+
+# Add from specific branch
+npx cccsc add user/repo/commandName --branch develop
 ```
 
 **Note**: Commands are installed locally by default. The `.claude` directory must exist in the target location.
@@ -61,7 +64,7 @@ npx cccsc update --global
 ```
 
 The update command will:
-1. Check each repository for new commits based on version/branch/tag constraints
+1. Check each repository for new commits based on branch constraints
 2. Show a detailed diff of changes
 3. Ask for confirmation before applying changes
 4. Update the lock file with new revisions
@@ -82,7 +85,6 @@ The update command will:
 {
   "repositories": {
     "user/repo": {
-      "version": "~> 1.2.0",
       "only": [
         {
           "name": "optimize",
@@ -97,11 +99,7 @@ The update command will:
       ]
     },
     "user/another-repo": {
-      "branch": "main",
-      "only": []
-    },
-    "user/tagged-repo": {
-      "tag": "v2.1.0",
+      "branch": "develop",
       "only": []
     }
   }
@@ -109,21 +107,28 @@ The update command will:
 ```
 
 - `only`: Array of specific commands. Empty array means install all commands from repository.
-- `version`: Version constraint (e.g., "1.2.0", "~> 1.2.0", ">= 1.0.0")
-- `branch`: Specific branch to use (defaults to "main" if no version/tag specified)
-- `tag`: Specific tag to use (alternative to version/branch)
-
-**Note**: Only one of version/branch/tag should be specified. If none are provided, defaults to "main" branch.
+- `branch`: Specific branch to use (defaults to "main" if not specified)
 
 ### Lock file structure (cccsc-lock.json)
 
 ```json
 {
-  "lockfileVersion": 1,
+  "lockfileVersion": 2,
   "repositories": {
     "user/repo": {
       "revision": "abc1234567890abcdef1234567890abcdef123456",
-      "only": ["optimize", "my-component"]
+      "only": [
+        {
+          "name": "optimize",
+          "path": "optimize.md",
+          "alias": null
+        },
+        {
+          "name": "my-component",
+          "path": "frontend/component.md", 
+          "alias": "my-component"
+        }
+      ]
     },
     "user/another-repo": {
       "revision": "def7890abcdef1234567890abcdef123456789abc",
