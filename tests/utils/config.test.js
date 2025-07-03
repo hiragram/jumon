@@ -166,12 +166,12 @@ describe('Config Utils', () => {
       mockedFs.readJson.mockResolvedValue(existingConfig);
       mockedFs.writeJson.mockResolvedValue();
 
-      await addRepositoryToConfig('user', 'repo', null, null, '1.0.0', null, null, false);
+      await addRepositoryToConfig('user', 'repo', null, null, null, 'main', null, false);
 
       expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/jumon.json', {
         repositories: {
           'user/repo': {
-            version: '1.0.0',
+            branch: 'main',
             only: []
           }
         }
@@ -206,20 +206,19 @@ describe('Config Utils', () => {
       }, { spaces: 2 });
     });
 
-    test('should handle version/branch/tag precedence', async () => {
+    test('should handle branch constraint', async () => {
       const existingConfig = { repositories: {} };
       
       mockedFs.pathExists.mockResolvedValue(true);
       mockedFs.readJson.mockResolvedValue(existingConfig);
       mockedFs.writeJson.mockResolvedValue();
 
-      // Version should take precedence
-      await addRepositoryToConfig('user', 'repo', null, null, '1.0.0', 'main', 'v1.0.0', true);
+      await addRepositoryToConfig('user', 'repo', null, null, null, 'develop', null, true);
 
       expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/jumon.json', {
         repositories: {
           'user/repo': {
-            version: '1.0.0',
+            branch: 'develop',
             only: []
           }
         }

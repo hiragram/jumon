@@ -69,7 +69,7 @@ describe('Add Command', () => {
       expect(mockedPaths.ensureCommandsDir).toHaveBeenCalledWith(true);
       expect(mockedGithub.getFileContent).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md');
       expect(mockedFs.writeFile).toHaveBeenCalledWith('/test/commands/testuser/testrepo/test.md', '# Test Command\nTest content');
-      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, undefined, 'main', undefined, true);
+      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, null, 'main', null, true);
       expect(consoleSpy).toHaveBeenCalledWith("✓ Successfully installed command 'test' to /test/commands/testuser/testrepo/test.md");
     });
 
@@ -78,7 +78,7 @@ describe('Add Command', () => {
 
       await addCommand('testuser/testrepo/test', options);
 
-      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', 'custom-name', undefined, 'main', undefined, true);
+      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', 'custom-name', null, 'main', null, true);
       expect(consoleSpy).toHaveBeenCalledWith("✓ Successfully installed command 'custom-name' to /test/commands/testuser/testrepo/custom-name.md");
     });
 
@@ -88,23 +88,16 @@ describe('Add Command', () => {
       await addCommand('testuser/testrepo/test', options);
 
       expect(mockedPaths.ensureCommandsDir).toHaveBeenCalledWith(false);
-      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, undefined, 'main', undefined, false);
+      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, null, 'main', null, false);
     });
 
-    test('should add command with version constraint', async () => {
-      const options = { global: false, version: '1.0.0' };
-
-      await addCommand('testuser/testrepo/test', options);
-
-      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, '1.0.0', undefined, undefined, true);
-    });
 
     test('should add command with branch constraint', async () => {
       const options = { global: false, branch: 'develop' };
 
       await addCommand('testuser/testrepo/test', options);
 
-      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, undefined, 'develop', undefined, true);
+      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, null, 'develop', null, true);
     });
 
     test('should add all commands from repository', async () => {

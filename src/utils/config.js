@@ -62,22 +62,9 @@ export async function addRepositoryToConfig(user, repo, commandPath = null, alia
     };
   }
   
-  // Add version/branch/tag constraints (only if provided)
-  if (version) {
-    config.repositories[repoKey].version = version;
-    // Remove branch/tag if version is specified
-    delete config.repositories[repoKey].branch;
-    delete config.repositories[repoKey].tag;
-  } else if (tag) {
-    config.repositories[repoKey].tag = tag;
-    // Remove branch/version if tag is specified
-    delete config.repositories[repoKey].branch;
-    delete config.repositories[repoKey].version;
-  } else if (branch) {
+  // Add branch constraint (only if provided)
+  if (branch) {
     config.repositories[repoKey].branch = branch;
-    // Remove version/tag if branch is specified
-    delete config.repositories[repoKey].version;
-    delete config.repositories[repoKey].tag;
   }
   
   if (commandPath) {
