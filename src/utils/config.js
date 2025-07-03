@@ -47,7 +47,7 @@ export async function saveJumonLock(lock, isLocal = false) {
   await fs.writeJson(lockPath, lock, { spaces: 2 });
 }
 
-export async function addRepositoryToConfig(user, repo, commandPath = null, alias = null, version = null, branch = null, tag = null, isLocal = false) {
+export async function addRepositoryToConfig(user, repo, commandPath = null, alias = null, branch = null, isLocal = false) {
   const config = await loadJumonConfig(isLocal);
   
   if (!config.repositories) {

@@ -143,7 +143,7 @@ describe('Config Utils', () => {
       mockedFs.readJson.mockResolvedValue(existingConfig);
       mockedFs.writeJson.mockResolvedValue();
 
-      await addRepositoryToConfig('user', 'repo', 'test.md', 'alias', null, 'main', null, true);
+      await addRepositoryToConfig('user', 'repo', 'test.md', 'alias', 'main', true);
 
       expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/jumon.json', {
         repositories: {
@@ -166,7 +166,7 @@ describe('Config Utils', () => {
       mockedFs.readJson.mockResolvedValue(existingConfig);
       mockedFs.writeJson.mockResolvedValue();
 
-      await addRepositoryToConfig('user', 'repo', null, null, null, 'main', null, false);
+      await addRepositoryToConfig('user', 'repo', null, null, 'main', false);
 
       expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/jumon.json', {
         repositories: {
@@ -191,7 +191,7 @@ describe('Config Utils', () => {
       mockedFs.readJson.mockResolvedValue(existingConfig);
       mockedFs.writeJson.mockResolvedValue();
 
-      await addRepositoryToConfig('user', 'repo', 'new.md', null, null, 'main', null, true);
+      await addRepositoryToConfig('user', 'repo', 'new.md', null, 'main', true);
 
       expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/jumon.json', {
         repositories: {
@@ -213,7 +213,7 @@ describe('Config Utils', () => {
       mockedFs.readJson.mockResolvedValue(existingConfig);
       mockedFs.writeJson.mockResolvedValue();
 
-      await addRepositoryToConfig('user', 'repo', null, null, null, 'develop', null, true);
+      await addRepositoryToConfig('user', 'repo', null, null, 'develop', true);
 
       expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/jumon.json', {
         repositories: {

@@ -69,7 +69,7 @@ describe('Add Command', () => {
       expect(mockedPaths.ensureCommandsDir).toHaveBeenCalledWith(true);
       expect(mockedGithub.getFileContent).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md');
       expect(mockedFs.writeFile).toHaveBeenCalledWith('/test/commands/testuser/testrepo/test.md', '# Test Command\nTest content');
-      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, null, 'main', null, true);
+      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, 'main', true);
       expect(consoleSpy).toHaveBeenCalledWith("✓ Successfully installed command 'test' to /test/commands/testuser/testrepo/test.md");
     });
 
@@ -78,7 +78,7 @@ describe('Add Command', () => {
 
       await addCommand('testuser/testrepo/test', options);
 
-      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', 'custom-name', null, 'main', null, true);
+      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', 'custom-name', 'main', true);
       expect(consoleSpy).toHaveBeenCalledWith("✓ Successfully installed command 'custom-name' to /test/commands/testuser/testrepo/custom-name.md");
     });
 
@@ -88,7 +88,7 @@ describe('Add Command', () => {
       await addCommand('testuser/testrepo/test', options);
 
       expect(mockedPaths.ensureCommandsDir).toHaveBeenCalledWith(false);
-      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, null, 'main', null, false);
+      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, 'main', false);
     });
 
 
@@ -97,7 +97,7 @@ describe('Add Command', () => {
 
       await addCommand('testuser/testrepo/test', options);
 
-      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, null, 'develop', null, true);
+      expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, 'develop', true);
     });
 
     test('should add all commands from repository', async () => {
