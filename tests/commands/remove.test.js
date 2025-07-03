@@ -30,10 +30,10 @@ describe('Remove Command', () => {
     // Setup default mocks
     mockedPaths.getCommandsPath.mockReturnValue('/test/commands');
     mockedFs.pathExists.mockResolvedValue(true);
-    mockedConfig.loadJumonConfig.mockResolvedValue({ repositories: {} });
-    mockedConfig.loadJumonLock.mockResolvedValue({ lockfileVersion: 1, repositories: {} });
-    mockedConfig.saveJumonConfig.mockResolvedValue();
-    mockedConfig.saveJumonLock.mockResolvedValue();
+    mockedConfig.loadCccscConfig.mockResolvedValue({ repositories: {} });
+    mockedConfig.loadCccscLock.mockResolvedValue({ lockfileVersion: 1, repositories: {} });
+    mockedConfig.saveCccscConfig.mockResolvedValue();
+    mockedConfig.saveCccscLock.mockResolvedValue();
   });
 
   afterEach(() => {
@@ -54,7 +54,7 @@ describe('Remove Command', () => {
         }
       };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
       mockedFs.pathExists.mockResolvedValue(true);
       mockedFs.remove.mockResolvedValue();
       mockedFs.readdir.mockResolvedValue(['other.md']);
@@ -64,7 +64,7 @@ describe('Remove Command', () => {
       await removeCommand('test', options);
 
       expect(mockedFs.remove).toHaveBeenCalledWith('/test/commands/testuser/testrepo/test.md');
-      expect(mockedConfig.saveJumonConfig).toHaveBeenCalled();
+      expect(mockedConfig.saveCccscConfig).toHaveBeenCalled();
       expect(consoleSpy).toHaveBeenCalledWith("✓ Successfully removed command 'test' (from testuser/testrepo)");
     });
 
@@ -79,7 +79,7 @@ describe('Remove Command', () => {
         }
       };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
       mockedFs.pathExists.mockResolvedValue(true);
       mockedFs.remove.mockResolvedValue();
       mockedFs.readdir.mockResolvedValue([]);
@@ -113,8 +113,8 @@ describe('Remove Command', () => {
         }
       };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
       mockedFs.pathExists.mockResolvedValue(true);
       mockedFs.remove.mockResolvedValue();
       mockedFs.readdir.mockResolvedValue([]);
@@ -124,11 +124,11 @@ describe('Remove Command', () => {
       await removeCommand('test', options);
 
       // Should remove the repository entry from config
-      const savedConfig = mockedConfig.saveJumonConfig.mock.calls[0][0];
+      const savedConfig = mockedConfig.saveCccscConfig.mock.calls[0][0];
       expect(savedConfig.repositories['testuser/testrepo']).toBeUndefined();
 
       // Should remove the repository entry from lock
-      const savedLock = mockedConfig.saveJumonLock.mock.calls[0][0];
+      const savedLock = mockedConfig.saveCccscLock.mock.calls[0][0];
       expect(savedLock.repositories['testuser/testrepo']).toBeUndefined();
     });
 
@@ -141,7 +141,7 @@ describe('Remove Command', () => {
         }
       };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
       mockedFs.pathExists.mockResolvedValue(true);
       mockedFs.remove.mockResolvedValue();
       mockedFs.readdir.mockResolvedValue([]);
@@ -165,7 +165,7 @@ describe('Remove Command', () => {
         }
       };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
       mockedFs.pathExists.mockResolvedValue(true);
       mockedFs.remove.mockResolvedValue();
       mockedFs.readdir
@@ -192,7 +192,7 @@ describe('Remove Command', () => {
         }
       };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
       mockedFs.pathExists.mockResolvedValue(true);
       mockedFs.remove.mockResolvedValue();
       mockedFs.readdir.mockResolvedValue(['other.md']); // repo directory not empty
@@ -208,7 +208,7 @@ describe('Remove Command', () => {
 
   describe('fallback to filesystem search', () => {
     test('should find and remove command by filesystem search when not in config', async () => {
-      mockedConfig.loadJumonConfig.mockResolvedValue({ repositories: {} });
+      mockedConfig.loadCccscConfig.mockResolvedValue({ repositories: {} });
       
       // Mock readdir to return the correct values in sequence
       mockedFs.readdir
@@ -237,7 +237,7 @@ describe('Remove Command', () => {
     });
 
     test('should handle multiple user directories in filesystem search', async () => {
-      mockedConfig.loadJumonConfig.mockResolvedValue({ repositories: {} });
+      mockedConfig.loadCccscConfig.mockResolvedValue({ repositories: {} });
       
       mockedFs.readdir
         .mockResolvedValueOnce(['user1', 'user2']) // commands dir
@@ -278,7 +278,7 @@ describe('Remove Command', () => {
     });
 
     test('should exit when command is not found', async () => {
-      mockedConfig.loadJumonConfig.mockResolvedValue({ repositories: {} });
+      mockedConfig.loadCccscConfig.mockResolvedValue({ repositories: {} });
       mockedFs.readdir.mockResolvedValue([]);
 
       const options = { global: false };
@@ -298,7 +298,7 @@ describe('Remove Command', () => {
         }
       };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
       mockedFs.pathExists.mockResolvedValue(true);
       mockedFs.remove.mockRejectedValue(new Error('Permission denied'));
 
@@ -309,7 +309,7 @@ describe('Remove Command', () => {
     });
 
     test('should handle readdir errors in filesystem search', async () => {
-      mockedConfig.loadJumonConfig.mockResolvedValue({ repositories: {} });
+      mockedConfig.loadCccscConfig.mockResolvedValue({ repositories: {} });
       
       // readdir will fail, which gets caught and returns empty array,
       // so the command won't be found
@@ -335,7 +335,7 @@ describe('Remove Command', () => {
         }
       };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
       mockedFs.pathExists.mockResolvedValue(true);
       mockedFs.remove.mockResolvedValue();
       mockedFs.readdir.mockResolvedValue([]);
@@ -345,8 +345,8 @@ describe('Remove Command', () => {
       await removeCommand('test', options);
 
       expect(mockedPaths.getCommandsPath).toHaveBeenCalledWith(false);
-      expect(mockedConfig.loadJumonConfig).toHaveBeenCalledWith(false);
-      expect(mockedConfig.loadJumonLock).toHaveBeenCalledWith(false);
+      expect(mockedConfig.loadCccscConfig).toHaveBeenCalledWith(false);
+      expect(mockedConfig.loadCccscLock).toHaveBeenCalledWith(false);
     });
 
     test('should handle local removal by default', async () => {
@@ -360,7 +360,7 @@ describe('Remove Command', () => {
         }
       };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
       mockedFs.pathExists.mockResolvedValue(true);
       mockedFs.remove.mockResolvedValue();
       mockedFs.readdir.mockResolvedValue([]);
@@ -370,8 +370,8 @@ describe('Remove Command', () => {
       await removeCommand('test', options);
 
       expect(mockedPaths.getCommandsPath).toHaveBeenCalledWith(true);
-      expect(mockedConfig.loadJumonConfig).toHaveBeenCalledWith(true);
-      expect(mockedConfig.loadJumonLock).toHaveBeenCalledWith(true);
+      expect(mockedConfig.loadCccscConfig).toHaveBeenCalledWith(true);
+      expect(mockedConfig.loadCccscLock).toHaveBeenCalledWith(true);
     });
   });
 });

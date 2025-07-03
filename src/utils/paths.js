@@ -3,30 +3,30 @@ import os from 'os';
 import fs from 'fs-extra';
 
 export function getGlobalCommandsPath() {
-  return path.join(os.homedir(), '.claude', 'commands', 'jumon');
+  return path.join(os.homedir(), '.claude', 'commands', 'cccsc');
 }
 
 export function getLocalCommandsPath() {
-  return path.join(process.cwd(), '.claude', 'commands', 'jumon');
+  return path.join(process.cwd(), '.claude', 'commands', 'cccsc');
 }
 
 export function getCommandsPath(isLocal = false) {
   return isLocal ? getLocalCommandsPath() : getGlobalCommandsPath();
 }
 
-export function getJumonConfigPath(isLocal = false) {
+export function getCccscConfigPath(isLocal = false) {
   if (isLocal) {
-    return path.join(process.cwd(), 'jumon.json');
+    return path.join(process.cwd(), 'cccsc.json');
   } else {
-    return path.join(os.homedir(), '.jumon', 'jumon.json');
+    return path.join(os.homedir(), '.cccsc', 'cccsc.json');
   }
 }
 
-export function getJumonLockPath(isLocal = false) {
+export function getCccscLockPath(isLocal = false) {
   if (isLocal) {
-    return path.join(process.cwd(), 'jumon-lock.json');
+    return path.join(process.cwd(), 'cccsc-lock.json');
   } else {
-    return path.join(os.homedir(), '.jumon', 'jumon-lock.json');
+    return path.join(os.homedir(), '.cccsc', 'cccsc-lock.json');
   }
 }
 
@@ -49,9 +49,9 @@ export async function ensureCommandsDir(isLocal = false) {
   return commandsPath;
 }
 
-export async function ensureJumonConfigDir(isLocal = false) {
+export async function ensureCccscConfigDir(isLocal = false) {
   if (!isLocal) {
-    const jumonDir = path.join(os.homedir(), '.jumon');
-    await fs.ensureDir(jumonDir);
+    const cccscDir = path.join(os.homedir(), '.cccsc');
+    await fs.ensureDir(cccscDir);
   }
 }

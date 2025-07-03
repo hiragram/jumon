@@ -2,18 +2,18 @@ import path from 'path';
 import fs from 'fs-extra';
 import { getFileContent, findMarkdownFiles } from '../utils/github.js';
 import { ensureCommandsDir } from '../utils/paths.js';
-import { loadJumonLock, loadJumonConfig, saveJumonLock } from '../utils/config.js';
+import { loadCccscLock, loadCccscConfig, saveCccscLock } from '../utils/config.js';
 import { parseRepositoryKey, validateRepositoryConfig } from '../utils/repository.js';
 import { handleCommandError, logError, logSuccess, logWarning } from '../utils/errors.js';
 
 export async function installCommand(options) {
   try {
     const isLocal = !options.global;
-    const config = await loadJumonConfig(isLocal);
-    const lock = await loadJumonLock(isLocal);
+    const config = await loadCccscConfig(isLocal);
+    const lock = await loadCccscLock(isLocal);
     
     if (!lock.repositories || Object.keys(lock.repositories).length === 0) {
-      console.log('No repositories to install (jumon-lock.json is empty or not found)');
+      console.log('No repositories to install (cccsc-lock.json is empty or not found)');
       return;
     }
     
@@ -99,7 +99,7 @@ export async function installCommand(options) {
     
     // Save updated lock file (unless skipped)
     if (!options.skipLockFileSave) {
-      await saveJumonLock(lock, isLocal);
+      await saveCccscLock(lock, isLocal);
     }
     
     console.log(`✓ Installed ${totalInstalled} commands from ${repositoryCount} repositories`);

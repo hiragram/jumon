@@ -50,7 +50,7 @@ describe('Add Command', () => {
     mockedGithub.getLatestCommitHash.mockResolvedValue('abc123def456');
     mockedGithub.resolveRepositoryRevision.mockResolvedValue('abc123def456');
     
-    mockedConfig.loadJumonConfig.mockResolvedValue({ repositories: {} });
+    mockedConfig.loadCccscConfig.mockResolvedValue({ repositories: {} });
     mockedConfig.addRepositoryToConfig.mockResolvedValue();
     mockedConfig.addRepositoryToLock.mockResolvedValue();
   });
@@ -160,7 +160,7 @@ describe('Add Command', () => {
     });
 
     test('should handle repository configuration conflicts with user confirmation', async () => {
-      mockedConfig.loadJumonConfig.mockResolvedValue({
+      mockedConfig.loadCccscConfig.mockResolvedValue({
         repositories: {
           'testuser/testrepo': {
             only: []
@@ -184,7 +184,7 @@ describe('Add Command', () => {
     });
 
     test('should cancel on repository configuration conflict when user declines', async () => {
-      mockedConfig.loadJumonConfig.mockResolvedValue({
+      mockedConfig.loadCccscConfig.mockResolvedValue({
         repositories: {
           'testuser/testrepo': {
             only: []

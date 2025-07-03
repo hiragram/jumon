@@ -39,7 +39,7 @@ describe('Update Command', () => {
     mockedFs.pathExists.mockResolvedValue(true);
     mockedFs.remove.mockResolvedValue();
     mockedGithub.resolveRepositoryRevision.mockResolvedValue('newcommit123');
-    mockedConfig.saveJumonLock.mockResolvedValue();
+    mockedConfig.saveCccscLock.mockResolvedValue();
     mockedInstallCommand.mockResolvedValue();
   });
 
@@ -71,8 +71,8 @@ describe('Update Command', () => {
         }
       };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
 
       const options = { global: false };
 
@@ -82,7 +82,7 @@ describe('Update Command', () => {
       expect(mockedGithub.resolveRepositoryRevision).toHaveBeenCalledWith('user', 'repo', mockConfig.repositories['user/repo']);
       expect(mockedFs.remove).toHaveBeenCalledWith('/test/commands/user/repo');
       expect(mockedInstallCommand).toHaveBeenCalledWith({ ...options, skipLockFileSave: true });
-      expect(mockedConfig.saveJumonLock).toHaveBeenCalled();
+      expect(mockedConfig.saveCccscLock).toHaveBeenCalled();
       expect(consoleSpy).toHaveBeenCalledWith('\n🎉 Update complete!');
     });
 
@@ -106,8 +106,8 @@ describe('Update Command', () => {
         }
       };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
 
       const options = { global: false };
 
@@ -137,8 +137,8 @@ describe('Update Command', () => {
         }
       };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
       mockedGithub.resolveRepositoryRevision.mockResolvedValue('tagcommit123');
 
       const options = { global: false };
@@ -168,8 +168,8 @@ describe('Update Command', () => {
         }
       };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
       mockedGithub.resolveRepositoryRevision.mockResolvedValue('tagcommit456');
 
       const options = { global: false };
@@ -195,8 +195,8 @@ describe('Update Command', () => {
         }
       };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
       mockedGithub.resolveRepositoryRevision.mockResolvedValue('newcommit123');
 
       const options = { global: false };
@@ -211,25 +211,25 @@ describe('Update Command', () => {
 
   describe('error handling', () => {
     test('should handle empty configuration', async () => {
-      mockedConfig.loadJumonConfig.mockResolvedValue({ repositories: {} });
+      mockedConfig.loadCccscConfig.mockResolvedValue({ repositories: {} });
 
       const options = { global: false };
 
       await updateCommand(options);
 
-      expect(consoleSpy).toHaveBeenCalledWith('No repositories to update (jumon.json is empty or not found)');
+      expect(consoleSpy).toHaveBeenCalledWith('No repositories to update (cccsc.json is empty or not found)');
       expect(mockedGithub.resolveRepositoryRevision).not.toHaveBeenCalled();
       expect(mockedInstallCommand).not.toHaveBeenCalled();
     });
 
     test('should handle missing configuration file', async () => {
-      mockedConfig.loadJumonConfig.mockResolvedValue({ repositories: null });
+      mockedConfig.loadCccscConfig.mockResolvedValue({ repositories: null });
 
       const options = { global: false };
 
       await updateCommand(options);
 
-      expect(consoleSpy).toHaveBeenCalledWith('No repositories to update (jumon.json is empty or not found)');
+      expect(consoleSpy).toHaveBeenCalledWith('No repositories to update (cccsc.json is empty or not found)');
     });
 
     test('should handle revision resolution errors', async () => {
@@ -246,8 +246,8 @@ describe('Update Command', () => {
         }
       };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
       mockedGithub.resolveRepositoryRevision.mockRejectedValue(new Error('Repository not found'));
 
       const options = { global: false };
@@ -272,8 +272,8 @@ describe('Update Command', () => {
         }
       };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
       
       // Mock fs.pathExists to return false to avoid removal attempt
       mockedFs.pathExists.mockResolvedValue(false);
@@ -301,8 +301,8 @@ describe('Update Command', () => {
         }
       };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
       mockedInstallCommand.mockRejectedValue(new Error('Install failed'));
 
       const options = { global: false };
@@ -312,7 +312,7 @@ describe('Update Command', () => {
     });
 
     test('should handle general errors', async () => {
-      mockedConfig.loadJumonConfig.mockRejectedValue(new Error('Config corrupted'));
+      mockedConfig.loadCccscConfig.mockRejectedValue(new Error('Config corrupted'));
 
       const options = { global: false };
 
@@ -325,14 +325,14 @@ describe('Update Command', () => {
     test('should handle global update', async () => {
       const mockConfig = { repositories: {} };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
 
       const options = { global: true };
 
       await updateCommand(options);
 
-      expect(mockedConfig.loadJumonConfig).toHaveBeenCalledWith(false); // isLocal should be false for global: true
-      expect(consoleSpy).toHaveBeenCalledWith('No repositories to update (jumon.json is empty or not found)');
+      expect(mockedConfig.loadCccscConfig).toHaveBeenCalledWith(false); // isLocal should be false for global: true
+      expect(consoleSpy).toHaveBeenCalledWith('No repositories to update (cccsc.json is empty or not found)');
     });
   });
 
@@ -349,15 +349,15 @@ describe('Update Command', () => {
         // Missing repositories object
       };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
 
       const options = { global: false };
 
       await updateCommand(options);
 
       // Should have created repositories object and updated it
-      expect(mockedConfig.saveJumonLock).toHaveBeenCalledWith(
+      expect(mockedConfig.saveCccscLock).toHaveBeenCalledWith(
         expect.objectContaining({
           repositories: expect.objectContaining({
             'user/repo': expect.objectContaining({
@@ -384,8 +384,8 @@ describe('Update Command', () => {
         }
       };
 
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
 
       const options = { global: false };
 

@@ -5,7 +5,7 @@
 
 ### ⚠ BREAKING CHANGES
 
-* jumon.json format changed to repository-based structure
+* cccsc.json format changed to repository-based structure
 * Lock file format changed from commands to repositories structure
 
 ### Features
@@ -17,9 +17,9 @@
 * add update command for refreshing commands based on version constraints ([7f97925](https://github.com/hiragram/jumon/commit/7f979252bd4bb648590b987c2900a6f61ef875c0))
 * change default installation to local and add .claude directory validation ([6255007](https://github.com/hiragram/jumon/commit/6255007ea7a4d00ebf4e67fa183f9070b411814e))
 * implement MVP of Claude Code command package manager ([ddee4d3](https://github.com/hiragram/jumon/commit/ddee4d3a7fbf09daa635b4721a929465262edb81))
-* move global configuration files to ~/.jumon/ directory ([05a7e38](https://github.com/hiragram/jumon/commit/05a7e38d519fdf9840b7dcd125900b19c3d9c4e5))
+* move global configuration files to ~/.cccsc/ directory ([05a7e38](https://github.com/hiragram/jumon/commit/05a7e38d519fdf9840b7dcd125900b19c3d9c4e5))
 * rename 'commands' to 'only' and add version/branch/tag support ([a80d077](https://github.com/hiragram/jumon/commit/a80d077c0eeaaf64843b4edc46280069f53afb48))
-* restructure jumon.json to repository-based format ([6874e8f](https://github.com/hiragram/jumon/commit/6874e8fd05eec9713f837d4e3a9df137c49275f3))
+* restructure cccsc.json to repository-based format ([6874e8f](https://github.com/hiragram/jumon/commit/6874e8fd05eec9713f837d4e3a9df137c49275f3))
 * restructure lock file to use repository-based tracking ([66839dc](https://github.com/hiragram/jumon/commit/66839dc7e76dc97bfda7f7073c242d64f857c93f))
 * set default branch to 'main' when no version constraints specified ([5db4931](https://github.com/hiragram/jumon/commit/5db4931aaf16f04342eed35e24a512ef7cc62f0e))
 

@@ -6,11 +6,11 @@ import {
   getGlobalCommandsPath,
   getLocalCommandsPath,
   getCommandsPath,
-  getJumonConfigPath,
-  getJumonLockPath,
+  getCccscConfigPath,
+  getCccscLockPath,
   checkClaudeDir,
   ensureCommandsDir,
-  ensureJumonConfigDir
+  ensureCccscConfigDir
 } from '../../src/utils/paths.js';
 
 // Mock fs-extra, os, and path
@@ -36,9 +36,9 @@ describe('Paths Utils', () => {
     test('should return global commands path', () => {
       const result = getGlobalCommandsPath();
       
-      expect(result).toBe('/home/user/.claude/commands/jumon');
+      expect(result).toBe('/home/user/.claude/commands/cccsc');
       expect(mockedOs.homedir).toHaveBeenCalled();
-      expect(mockedPath.join).toHaveBeenCalledWith('/home/user', '.claude', 'commands', 'jumon');
+      expect(mockedPath.join).toHaveBeenCalledWith('/home/user', '.claude', 'commands', 'cccsc');
     });
   });
 
@@ -46,8 +46,8 @@ describe('Paths Utils', () => {
     test('should return local commands path', () => {
       const result = getLocalCommandsPath();
       
-      expect(result).toBe('/current/dir/.claude/commands/jumon');
-      expect(mockedPath.join).toHaveBeenCalledWith('/current/dir', '.claude', 'commands', 'jumon');
+      expect(result).toBe('/current/dir/.claude/commands/cccsc');
+      expect(mockedPath.join).toHaveBeenCalledWith('/current/dir', '.claude', 'commands', 'cccsc');
     });
   });
 
@@ -55,57 +55,57 @@ describe('Paths Utils', () => {
     test('should return local path when isLocal is true', () => {
       const result = getCommandsPath(true);
       
-      expect(result).toBe('/current/dir/.claude/commands/jumon');
+      expect(result).toBe('/current/dir/.claude/commands/cccsc');
     });
 
     test('should return global path when isLocal is false', () => {
       const result = getCommandsPath(false);
       
-      expect(result).toBe('/home/user/.claude/commands/jumon');
+      expect(result).toBe('/home/user/.claude/commands/cccsc');
     });
 
     test('should return global path by default', () => {
       const result = getCommandsPath();
       
-      expect(result).toBe('/home/user/.claude/commands/jumon');
+      expect(result).toBe('/home/user/.claude/commands/cccsc');
     });
   });
 
-  describe('getJumonConfigPath', () => {
+  describe('getCccscConfigPath', () => {
     test('should return local config path when isLocal is true', () => {
-      const result = getJumonConfigPath(true);
+      const result = getCccscConfigPath(true);
       
-      expect(result).toBe('/current/dir/jumon.json');
-      expect(mockedPath.join).toHaveBeenCalledWith('/current/dir', 'jumon.json');
+      expect(result).toBe('/current/dir/cccsc.json');
+      expect(mockedPath.join).toHaveBeenCalledWith('/current/dir', 'cccsc.json');
     });
 
     test('should return global config path when isLocal is false', () => {
-      const result = getJumonConfigPath(false);
+      const result = getCccscConfigPath(false);
       
-      expect(result).toBe('/home/user/.jumon/jumon.json');
-      expect(mockedPath.join).toHaveBeenCalledWith('/home/user', '.jumon', 'jumon.json');
+      expect(result).toBe('/home/user/.cccsc/cccsc.json');
+      expect(mockedPath.join).toHaveBeenCalledWith('/home/user', '.cccsc', 'cccsc.json');
     });
 
     test('should return global config path by default', () => {
-      const result = getJumonConfigPath();
+      const result = getCccscConfigPath();
       
-      expect(result).toBe('/home/user/.jumon/jumon.json');
+      expect(result).toBe('/home/user/.cccsc/cccsc.json');
     });
   });
 
-  describe('getJumonLockPath', () => {
+  describe('getCccscLockPath', () => {
     test('should return local lock path when isLocal is true', () => {
-      const result = getJumonLockPath(true);
+      const result = getCccscLockPath(true);
       
-      expect(result).toBe('/current/dir/jumon-lock.json');
-      expect(mockedPath.join).toHaveBeenCalledWith('/current/dir', 'jumon-lock.json');
+      expect(result).toBe('/current/dir/cccsc-lock.json');
+      expect(mockedPath.join).toHaveBeenCalledWith('/current/dir', 'cccsc-lock.json');
     });
 
     test('should return global lock path when isLocal is false', () => {
-      const result = getJumonLockPath(false);
+      const result = getCccscLockPath(false);
       
-      expect(result).toBe('/home/user/.jumon/jumon-lock.json');
-      expect(mockedPath.join).toHaveBeenCalledWith('/home/user', '.jumon', 'jumon-lock.json');
+      expect(result).toBe('/home/user/.cccsc/cccsc-lock.json');
+      expect(mockedPath.join).toHaveBeenCalledWith('/home/user', '.cccsc', 'cccsc-lock.json');
     });
   });
 
@@ -150,9 +150,9 @@ describe('Paths Utils', () => {
 
       const result = await ensureCommandsDir(true);
       
-      expect(result).toBe('/current/dir/.claude/commands/jumon');
+      expect(result).toBe('/current/dir/.claude/commands/cccsc');
       expect(mockedFs.pathExists).toHaveBeenCalledWith('/current/dir/.claude');
-      expect(mockedFs.ensureDir).toHaveBeenCalledWith('/current/dir/.claude/commands/jumon');
+      expect(mockedFs.ensureDir).toHaveBeenCalledWith('/current/dir/.claude/commands/cccsc');
     });
 
     test('should ensure global commands directory exists', async () => {
@@ -161,9 +161,9 @@ describe('Paths Utils', () => {
 
       const result = await ensureCommandsDir(false);
       
-      expect(result).toBe('/home/user/.claude/commands/jumon');
+      expect(result).toBe('/home/user/.claude/commands/cccsc');
       expect(mockedFs.pathExists).toHaveBeenCalledWith('/home/user/.claude');
-      expect(mockedFs.ensureDir).toHaveBeenCalledWith('/home/user/.claude/commands/jumon');
+      expect(mockedFs.ensureDir).toHaveBeenCalledWith('/home/user/.claude/commands/cccsc');
     });
 
     test('should throw error if Claude directory check fails', async () => {
@@ -174,27 +174,27 @@ describe('Paths Utils', () => {
     });
   });
 
-  describe('ensureJumonConfigDir', () => {
+  describe('ensureCccscConfigDir', () => {
     test('should not create directory for local config', async () => {
-      await ensureJumonConfigDir(true);
+      await ensureCccscConfigDir(true);
       
       expect(mockedFs.ensureDir).not.toHaveBeenCalled();
     });
 
-    test('should ensure global jumon directory exists', async () => {
+    test('should ensure global cccsc directory exists', async () => {
       mockedFs.ensureDir.mockResolvedValue();
 
-      await ensureJumonConfigDir(false);
+      await ensureCccscConfigDir(false);
       
-      expect(mockedFs.ensureDir).toHaveBeenCalledWith('/home/user/.jumon');
+      expect(mockedFs.ensureDir).toHaveBeenCalledWith('/home/user/.cccsc');
     });
 
-    test('should ensure global jumon directory by default', async () => {
+    test('should ensure global cccsc directory by default', async () => {
       mockedFs.ensureDir.mockResolvedValue();
 
-      await ensureJumonConfigDir();
+      await ensureCccscConfigDir();
       
-      expect(mockedFs.ensureDir).toHaveBeenCalledWith('/home/user/.jumon');
+      expect(mockedFs.ensureDir).toHaveBeenCalledWith('/home/user/.cccsc');
     });
   });
 });

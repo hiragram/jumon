@@ -1,16 +1,16 @@
 import fs from 'fs-extra';
-import { getJumonConfigPath, getJumonLockPath, ensureJumonConfigDir } from './paths.js';
+import { getCccscConfigPath, getCccscLockPath, ensureCccscConfigDir } from './paths.js';
 import { parseRepositoryPath } from './github.js';
 
-export async function loadJumonConfig(isLocal = false) {
-  const configPath = getJumonConfigPath(isLocal);
+export async function loadCccscConfig(isLocal = false) {
+  const configPath = getCccscConfigPath(isLocal);
   
   try {
     if (await fs.pathExists(configPath)) {
       return await fs.readJson(configPath);
     }
   } catch (error) {
-    console.warn(`Failed to load jumon.json: ${error.message}`);
+    console.warn(`Failed to load cccsc.json: ${error.message}`);
   }
   
   return {
@@ -18,21 +18,21 @@ export async function loadJumonConfig(isLocal = false) {
   };
 }
 
-export async function saveJumonConfig(config, isLocal = false) {
-  await ensureJumonConfigDir(isLocal);
-  const configPath = getJumonConfigPath(isLocal);
+export async function saveCccscConfig(config, isLocal = false) {
+  await ensureCccscConfigDir(isLocal);
+  const configPath = getCccscConfigPath(isLocal);
   await fs.writeJson(configPath, config, { spaces: 2 });
 }
 
-export async function loadJumonLock(isLocal = false) {
-  const lockPath = getJumonLockPath(isLocal);
+export async function loadCccscLock(isLocal = false) {
+  const lockPath = getCccscLockPath(isLocal);
   
   try {
     if (await fs.pathExists(lockPath)) {
       return await fs.readJson(lockPath);
     }
   } catch (error) {
-    console.warn(`Failed to load jumon-lock.json: ${error.message}`);
+    console.warn(`Failed to load cccsc-lock.json: ${error.message}`);
   }
   
   return {
@@ -41,14 +41,14 @@ export async function loadJumonLock(isLocal = false) {
   };
 }
 
-export async function saveJumonLock(lock, isLocal = false) {
-  await ensureJumonConfigDir(isLocal);
-  const lockPath = getJumonLockPath(isLocal);
+export async function saveCccscLock(lock, isLocal = false) {
+  await ensureCccscConfigDir(isLocal);
+  const lockPath = getCccscLockPath(isLocal);
   await fs.writeJson(lockPath, lock, { spaces: 2 });
 }
 
 export async function addRepositoryToConfig(user, repo, commandPath = null, alias = null, branch = null, isLocal = false) {
-  const config = await loadJumonConfig(isLocal);
+  const config = await loadCccscConfig(isLocal);
   
   if (!config.repositories) {
     config.repositories = {};
@@ -88,12 +88,12 @@ export async function addRepositoryToConfig(user, repo, commandPath = null, alia
     config.repositories[repoKey].only = [];
   }
   
-  await saveJumonConfig(config, isLocal);
+  await saveCccscConfig(config, isLocal);
 }
 
 
 export async function addRepositoryToLock(user, repo, revision, commandPath = null, isLocal = false) {
-  const lock = await loadJumonLock(isLocal);
+  const lock = await loadCccscLock(isLocal);
   
   if (!lock.repositories) {
     lock.repositories = {};
@@ -125,11 +125,11 @@ export async function addRepositoryToLock(user, repo, revision, commandPath = nu
   }
   
   lock.repositories[repoKey] = repoEntry;
-  await saveJumonLock(lock, isLocal);
+  await saveCccscLock(lock, isLocal);
 }
 
 export async function getRepositoryFromLock(user, repo, isLocal = false) {
-  const lock = await loadJumonLock(isLocal);
+  const lock = await loadCccscLock(isLocal);
   const repoKey = `${user}/${repo}`;
   return lock.repositories?.[repoKey] || null;
 }
