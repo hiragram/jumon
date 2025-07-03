@@ -67,7 +67,7 @@ describe('Add Command', () => {
 
       expect(mockedGithub.parseRepositoryPath).toHaveBeenCalledWith('testuser/testrepo/test');
       expect(mockedPaths.ensureCommandsDir).toHaveBeenCalledWith(true);
-      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md');
+      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', 'main');
       expect(mockedFs.writeFile).toHaveBeenCalledWith('/test/commands/testuser/testrepo/test.md', '# Test Command\nTest content');
       expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, 'main', true);
       expect(consoleSpy).toHaveBeenCalledWith("✓ Successfully installed command 'test' to /test/commands/testuser/testrepo/test.md");
@@ -97,6 +97,7 @@ describe('Add Command', () => {
 
       await addCommand('testuser/testrepo/test', options);
 
+      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', 'develop');
       expect(mockedConfig.addRepositoryToConfig).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', undefined, 'develop', true);
     });
 
@@ -116,7 +117,7 @@ describe('Add Command', () => {
 
       await addCommand('testuser/testrepo', options);
 
-      expect(mockedGithub.findMarkdownFiles).toHaveBeenCalledWith('testuser', 'testrepo');
+      expect(mockedGithub.findMarkdownFiles).toHaveBeenCalledWith('testuser', 'testrepo', '', 'main');
       expect(mockedGithub.getFileContent).toHaveBeenCalledTimes(2);
       expect(mockedFs.writeFile).toHaveBeenCalledTimes(2);
       expect(consoleSpy).toHaveBeenCalledWith('Installing 2 commands...');
@@ -215,6 +216,15 @@ describe('Add Command', () => {
       expect(console.error).toHaveBeenCalledWith('Error: File not found');
     });
 
+    test('should handle nonexistent branch error', async () => {
+      mockedGithub.getFileContent.mockRejectedValue(new Error('Repository testuser/testrepo not found, path test.md does not exist, or branch \'nonexistent\' does not exist'));
+
+      const options = { global: false, branch: 'nonexistent' };
+
+      await expect(addCommand('testuser/testrepo/test', options)).rejects.toThrow('process.exit unexpectedly called with "1"');
+      expect(console.error).toHaveBeenCalledWith('Error: Repository testuser/testrepo not found, path test.md does not exist, or branch \'nonexistent\' does not exist');
+    });
+
     test('should handle empty repository', async () => {
       mockedGithub.parseRepositoryPath.mockReturnValue({
         user: 'testuser',
@@ -261,6 +271,21 @@ describe('Add Command', () => {
       await expect(addCommand('testuser/testrepo/test', options)).rejects.toThrow('process.exit unexpectedly called with "1"');
       expect(console.error).toHaveBeenCalledWith('Error: Permission denied');
     });
+
+    test('should handle nonexistent branch when installing all commands', async () => {
+      mockedGithub.parseRepositoryPath.mockReturnValue({
+        user: 'testuser',
+        repo: 'testrepo',
+        commandPath: null
+      });
+      
+      mockedGithub.findMarkdownFiles.mockRejectedValue(new Error('Repository testuser/testrepo not found, path  does not exist, or branch \'feature\' does not exist'));
+
+      const options = { global: false, branch: 'feature' };
+
+      await expect(addCommand('testuser/testrepo', options)).rejects.toThrow('process.exit unexpectedly called with "1"');
+      expect(console.error).toHaveBeenCalledWith('Error: Repository testuser/testrepo not found, path  does not exist, or branch \'feature\' does not exist');
+    });
   });
 
   describe('command path handling', () => {
@@ -275,7 +300,7 @@ describe('Add Command', () => {
 
       await addCommand('testuser/testrepo/test.md', options);
 
-      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md');
+      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', 'main');
     });
 
     test('should add .md extension when missing', async () => {
@@ -289,7 +314,7 @@ describe('Add Command', () => {
 
       await addCommand('testuser/testrepo/test', options);
 
-      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md');
+      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('testuser', 'testrepo', 'test.md', 'main');
     });
   });
 });

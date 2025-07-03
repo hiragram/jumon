@@ -86,13 +86,13 @@ describe('Install Command', () => {
       await installCommand(options);
 
       // Should install specific commands from user1/repo1
-      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user1', 'repo1', 'cmd1.md');
-      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user1', 'repo1', 'cmd2.md');
+      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user1', 'repo1', 'cmd1.md', 'main');
+      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user1', 'repo1', 'cmd2.md', 'main');
       
       // Should install all commands from user2/repo2
-      expect(mockedGithub.findMarkdownFiles).toHaveBeenCalledWith('user2', 'repo2');
-      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user2', 'repo2', 'all1.md');
-      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user2', 'repo2', 'all2.md');
+      expect(mockedGithub.findMarkdownFiles).toHaveBeenCalledWith('user2', 'repo2', '', 'main');
+      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user2', 'repo2', 'all1.md', 'main');
+      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user2', 'repo2', 'all2.md', 'main');
 
       // Should write files
       expect(mockedFs.writeFile).toHaveBeenCalledWith('/test/commands/user1/repo1/cmd1.md', '# Test Command\nContent');
@@ -131,7 +131,7 @@ describe('Install Command', () => {
 
       await installCommand(options);
 
-      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user', 'repo', 'commands/specific.md');
+      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user', 'repo', 'commands/specific.md', 'main');
       expect(mockedFs.writeFile).toHaveBeenCalledWith('/test/commands/user/repo/alias-name.md', '# Test Command\nContent');
       expect(consoleSpy).toHaveBeenCalledWith('✓ Installed alias-name');
     });
@@ -215,9 +215,9 @@ describe('Install Command', () => {
 
       await installCommand(options);
 
-      expect(mockedGithub.findMarkdownFiles).toHaveBeenCalledWith('user', 'repo');
-      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user', 'repo', 'cmd1.md');
-      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user', 'repo', 'cmd2.md');
+      expect(mockedGithub.findMarkdownFiles).toHaveBeenCalledWith('user', 'repo', '', 'main');
+      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user', 'repo', 'cmd1.md', 'main');
+      expect(mockedGithub.getFileContent).toHaveBeenCalledWith('user', 'repo', 'cmd2.md', 'main');
       expect(mockedFs.writeFile).toHaveBeenCalledWith('/test/commands/user/repo/cmd1.md', '# Test Command\nContent');
       expect(mockedFs.writeFile).toHaveBeenCalledWith('/test/commands/user/repo/cmd2.md', '# Test Command\nContent');
     });
