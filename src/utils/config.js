@@ -47,7 +47,7 @@ export async function saveJumonLock(lock, isLocal = false) {
   await fs.writeJson(lockPath, lock, { spaces: 2 });
 }
 
-export async function addRepositoryToConfig(user, repo, commandPath = null, alias = null, version = null, branch = null, tag = null, isLocal = false) {
+export async function addRepositoryToConfig(user, repo, commandPath = null, alias = null, branch = null, isLocal = false) {
   const config = await loadJumonConfig(isLocal);
   
   if (!config.repositories) {
@@ -62,22 +62,9 @@ export async function addRepositoryToConfig(user, repo, commandPath = null, alia
     };
   }
   
-  // Add version/branch/tag constraints (only if provided)
-  if (version) {
-    config.repositories[repoKey].version = version;
-    // Remove branch/tag if version is specified
-    delete config.repositories[repoKey].branch;
-    delete config.repositories[repoKey].tag;
-  } else if (tag) {
-    config.repositories[repoKey].tag = tag;
-    // Remove branch/version if tag is specified
-    delete config.repositories[repoKey].branch;
-    delete config.repositories[repoKey].version;
-  } else if (branch) {
+  // Add branch constraint (only if provided)
+  if (branch) {
     config.repositories[repoKey].branch = branch;
-    // Remove version/tag if branch is specified
-    delete config.repositories[repoKey].version;
-    delete config.repositories[repoKey].tag;
   }
   
   if (commandPath) {

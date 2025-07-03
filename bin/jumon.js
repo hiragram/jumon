@@ -20,9 +20,7 @@ program
   .option('-g, --global', 'Install to global commands (~/.claude/commands/)')
   .option('-l, --local', 'Install to local project (.claude/commands/) [default]')
   .option('-a, --alias <name>', 'Install with a different name')
-  .option('-v, --version <version>', 'Version constraint (e.g., "1.2.0", "~> 1.2.0")')
   .option('-b, --branch <branch>', 'Specific branch to use')
-  .option('-t, --tag <tag>', 'Specific tag to use')
   .action(addCommand);
 
 program
