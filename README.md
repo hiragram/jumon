@@ -1,63 +1,63 @@
-# Jumon
+# Cccsc
 
 Claude Code custom slash commands package manager for easy sharing and management of commands
 
 ## Usage
 
-No installation required! Use `npx` to run jumon commands directly:
+No installation required! Use `npx` to run cccsc commands directly:
 
 ### Add a command from GitHub repository
 
 ```bash
 # Add specific command (defaults to local)
-npx jumon add user/repo/commandName
+npx cccsc add user/repo/commandName
 
 # Add all commands from repository
-npx jumon add user/repo
+npx cccsc add user/repo
 
 # Add with alias
-npx jumon add user/repo/commandName --alias my-command
+npx cccsc add user/repo/commandName --alias my-command
 
 # Add to global commands
-npx jumon add user/repo/commandName --global
+npx cccsc add user/repo/commandName --global
 ```
 
 **Note**: Commands are installed locally by default. The `.claude` directory must exist in the target location.
 
-### Install commands from jumon-lock.json
+### Install commands from cccsc-lock.json
 
 ```bash
-npx jumon install
+npx cccsc install
 ```
 
 ### List installed commands
 
 ```bash
 # List all commands
-npx jumon list
+npx cccsc list
 
 # List local commands only
-npx jumon list --local
+npx cccsc list --local
 
 # List global commands only
-npx jumon list --global
+npx cccsc list --global
 ```
 
 ### Remove a command
 
 ```bash
-npx jumon remove commandName
+npx cccsc remove commandName
 ```
 
 ### Update commands
 
 ```bash
-# Update all commands based on jumon.json constraints
+# Update all commands based on cccsc.json constraints
 # Shows diff preview and asks for confirmation
-npx jumon update
+npx cccsc update
 
 # Update global commands only
-npx jumon update --global
+npx cccsc update --global
 ```
 
 The update command will:
@@ -69,14 +69,14 @@ The update command will:
 ## Files
 
 ### Local files (project-specific)
-- `jumon.json` - Configuration file listing desired repositories and commands
-- `jumon-lock.json` - Lock file with exact repository revisions
+- `cccsc.json` - Configuration file listing desired repositories and commands
+- `cccsc-lock.json` - Lock file with exact repository revisions
 
 ### Global files
-- `~/.jumon/jumon.json` - Global configuration file
-- `~/.jumon/jumon-lock.json` - Global lock file
+- `~/.cccsc/cccsc.json` - Global configuration file
+- `~/.cccsc/cccsc-lock.json` - Global lock file
 
-### Configuration file structure (jumon.json)
+### Configuration file structure (cccsc.json)
 
 ```json
 {
@@ -115,7 +115,7 @@ The update command will:
 
 **Note**: Only one of version/branch/tag should be specified. If none are provided, defaults to "main" branch.
 
-### Lock file structure (jumon-lock.json)
+### Lock file structure (cccsc-lock.json)
 
 ```json
 {
@@ -138,7 +138,7 @@ The update command will:
 
 ## Command Installation Paths
 
-- **Local (default)**: `.claude/commands/jumon/user/repo/` - accessible as `/project:commandName`
-- **Global**: `~/.claude/commands/jumon/user/repo/` - accessible as `/user:commandName`
+- **Local (default)**: `.claude/commands/cccsc/user/repo/` - accessible as `/project:commandName`
+- **Global**: `~/.claude/commands/cccsc/user/repo/` - accessible as `/user:commandName`
 
 **Requirements**: The `.claude` directory must exist in the target location before installing commands.

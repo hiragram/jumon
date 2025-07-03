@@ -1,10 +1,10 @@
 {
-  "name": "jumon",
+  "name": "cccsc",
   "version": "0.3.0",
   "description": "Claude Code custom slash commands package manager",
   "main": "index.js",
   "bin": {
-    "jumon": "./bin/jumon.js"
+    "cccsc": "./bin/cccsc.js"
   },
   "files": [
     "bin/",
@@ -24,12 +24,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/hiragram/jumon.git"
+    "url": "git+https://github.com/hiragram/cccsc.git"
   },
   "bugs": {
-    "url": "https://github.com/hiragram/jumon/issues"
+    "url": "https://github.com/hiragram/cccsc/issues"
   },
-  "homepage": "https://github.com/hiragram/jumon#readme",
+  "homepage": "https://github.com/hiragram/cccsc#readme",
   "dependencies": {
     "axios": "^1.6.0",
     "commander": "^11.0.0",

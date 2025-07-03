@@ -99,4 +99,4 @@ jobs:
     - name: Test CLI installation
       run: |
         npm install -g .
-        jumon --help
+        cccsc --help

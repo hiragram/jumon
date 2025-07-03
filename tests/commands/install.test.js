@@ -72,8 +72,8 @@ describe('Install Command', () => {
         }
       };
 
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
       
       // Mock findMarkdownFiles for repo with all commands
       mockedGithub.findMarkdownFiles.mockResolvedValue([
@@ -124,8 +124,8 @@ describe('Install Command', () => {
         }
       };
 
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
 
       const options = { global: false };
 
@@ -142,13 +142,13 @@ describe('Install Command', () => {
         repositories: {}
       };
 
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
 
       const options = { global: false };
 
       await installCommand(options);
 
-      expect(consoleSpy).toHaveBeenCalledWith('No repositories to install (jumon-lock.json is empty or not found)');
+      expect(consoleSpy).toHaveBeenCalledWith('No repositories to install (cccsc-lock.json is empty or not found)');
       expect(mockedGithub.getFileContent).not.toHaveBeenCalled();
     });
 
@@ -173,16 +173,16 @@ describe('Install Command', () => {
         }
       };
 
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
 
       const options = { global: true };
 
       await installCommand(options);
 
       expect(mockedPaths.ensureCommandsDir).toHaveBeenCalledWith(false);
-      expect(mockedConfig.loadJumonLock).toHaveBeenCalledWith(false);
-      expect(mockedConfig.loadJumonConfig).toHaveBeenCalledWith(false);
+      expect(mockedConfig.loadCccscLock).toHaveBeenCalledWith(false);
+      expect(mockedConfig.loadCccscConfig).toHaveBeenCalledWith(false);
     });
 
     test('should handle repositories with all commands (empty only array)', async () => {
@@ -204,8 +204,8 @@ describe('Install Command', () => {
         }
       };
 
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
       mockedGithub.findMarkdownFiles.mockResolvedValue([
         { name: 'cmd1', path: 'cmd1.md' },
         { name: 'cmd2', path: 'cmd2.md' }
@@ -243,14 +243,14 @@ describe('Install Command', () => {
         }
       };
 
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
 
       const options = { global: false, skipLockFileSave: true };
 
       await installCommand(options);
 
-      expect(mockedConfig.saveJumonLock).not.toHaveBeenCalled();
+      expect(mockedConfig.saveCccscLock).not.toHaveBeenCalled();
       expect(consoleSpy).toHaveBeenCalledWith('✓ Installed cmd');
     });
 
@@ -275,14 +275,14 @@ describe('Install Command', () => {
         }
       };
 
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
 
       const options = { global: false };
 
       await installCommand(options);
 
-      expect(mockedConfig.saveJumonLock).toHaveBeenCalledWith(
+      expect(mockedConfig.saveCccscLock).toHaveBeenCalledWith(
         expect.objectContaining({
           repositories: expect.objectContaining({
             'user/repo': expect.objectContaining({
@@ -317,8 +317,8 @@ describe('Install Command', () => {
         }
       };
 
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
       mockedGithub.getFileContent.mockRejectedValue(new Error('File not found'));
 
       const options = { global: false };
@@ -350,8 +350,8 @@ describe('Install Command', () => {
         }
       };
 
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
       mockedFs.writeFile.mockRejectedValue(new Error('Permission denied'));
 
       const options = { global: false };
@@ -380,8 +380,8 @@ describe('Install Command', () => {
         }
       };
 
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
       mockedGithub.findMarkdownFiles.mockRejectedValue(new Error('Repository not found'));
 
       const options = { global: false };
@@ -406,8 +406,8 @@ describe('Install Command', () => {
         repositories: {} // No config for the repository
       };
 
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
 
       const options = { global: false };
 
@@ -418,7 +418,7 @@ describe('Install Command', () => {
     });
 
     test('should handle general errors', async () => {
-      mockedConfig.loadJumonLock.mockRejectedValue(new Error('Lock file corrupted'));
+      mockedConfig.loadCccscLock.mockRejectedValue(new Error('Lock file corrupted'));
 
       const options = { global: false };
 
@@ -450,8 +450,8 @@ describe('Install Command', () => {
         }
       };
 
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
       
       mockedGithub.getFileContent
         .mockResolvedValueOnce('Success content')
@@ -495,8 +495,8 @@ describe('Install Command', () => {
         }
       };
 
-      mockedConfig.loadJumonLock.mockResolvedValue(mockLock);
-      mockedConfig.loadJumonConfig.mockResolvedValue(mockConfig);
+      mockedConfig.loadCccscLock.mockResolvedValue(mockLock);
+      mockedConfig.loadCccscConfig.mockResolvedValue(mockConfig);
       
       // First repo succeeds
       mockedGithub.getFileContent.mockResolvedValueOnce('Success content');

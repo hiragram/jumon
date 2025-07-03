@@ -1,10 +1,10 @@
 import { describe, test, expect, beforeEach, vi } from 'vitest';
 import fs from 'fs-extra';
 import { 
-  loadJumonConfig, 
-  saveJumonConfig, 
-  loadJumonLock, 
-  saveJumonLock,
+  loadCccscConfig, 
+  saveCccscConfig, 
+  loadCccscLock, 
+  saveCccscLock,
   addRepositoryToConfig,
   addRepositoryToLock,
   getRepositoryFromLock
@@ -21,12 +21,12 @@ const mockedPaths = vi.mocked(paths);
 describe('Config Utils', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockedPaths.getJumonConfigPath.mockReturnValue('/test/jumon.json');
-    mockedPaths.getJumonLockPath.mockReturnValue('/test/jumon-lock.json');
-    mockedPaths.ensureJumonConfigDir.mockResolvedValue();
+    mockedPaths.getCccscConfigPath.mockReturnValue('/test/cccsc.json');
+    mockedPaths.getCccscLockPath.mockReturnValue('/test/cccsc-lock.json');
+    mockedPaths.ensureCccscConfigDir.mockResolvedValue();
   });
 
-  describe('loadJumonConfig', () => {
+  describe('loadCccscConfig', () => {
     test('should load existing config file', async () => {
       const mockConfig = {
         repositories: {
@@ -39,21 +39,21 @@ describe('Config Utils', () => {
       mockedFs.pathExists.mockResolvedValue(true);
       mockedFs.readJson.mockResolvedValue(mockConfig);
 
-      const result = await loadJumonConfig(true);
+      const result = await loadCccscConfig(true);
 
       expect(result).toEqual(mockConfig);
-      expect(mockedPaths.getJumonConfigPath).toHaveBeenCalledWith(true);
-      expect(mockedFs.pathExists).toHaveBeenCalledWith('/test/jumon.json');
-      expect(mockedFs.readJson).toHaveBeenCalledWith('/test/jumon.json');
+      expect(mockedPaths.getCccscConfigPath).toHaveBeenCalledWith(true);
+      expect(mockedFs.pathExists).toHaveBeenCalledWith('/test/cccsc.json');
+      expect(mockedFs.readJson).toHaveBeenCalledWith('/test/cccsc.json');
     });
 
     test('should return default config when file does not exist', async () => {
       mockedFs.pathExists.mockResolvedValue(false);
 
-      const result = await loadJumonConfig(false);
+      const result = await loadCccscConfig(false);
 
       expect(result).toEqual({ repositories: {} });
-      expect(mockedPaths.getJumonConfigPath).toHaveBeenCalledWith(false);
+      expect(mockedPaths.getCccscConfigPath).toHaveBeenCalledWith(false);
     });
 
     test('should handle read errors gracefully', async () => {
@@ -62,16 +62,16 @@ describe('Config Utils', () => {
 
       const consoleSpy = vi.spyOn(console, 'warn').mockImplementation();
 
-      const result = await loadJumonConfig(true);
+      const result = await loadCccscConfig(true);
 
       expect(result).toEqual({ repositories: {} });
-      expect(consoleSpy).toHaveBeenCalledWith('Failed to load jumon.json: Permission denied');
+      expect(consoleSpy).toHaveBeenCalledWith('Failed to load cccsc.json: Permission denied');
       
       consoleSpy.mockRestore();
     });
   });
 
-  describe('saveJumonConfig', () => {
+  describe('saveCccscConfig', () => {
     test('should save config file', async () => {
       const config = {
         repositories: {
@@ -79,15 +79,15 @@ describe('Config Utils', () => {
         }
       };
 
-      await saveJumonConfig(config, true);
+      await saveCccscConfig(config, true);
 
-      expect(mockedPaths.ensureJumonConfigDir).toHaveBeenCalledWith(true);
-      expect(mockedPaths.getJumonConfigPath).toHaveBeenCalledWith(true);
-      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/jumon.json', config, { spaces: 2 });
+      expect(mockedPaths.ensureCccscConfigDir).toHaveBeenCalledWith(true);
+      expect(mockedPaths.getCccscConfigPath).toHaveBeenCalledWith(true);
+      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/cccsc.json', config, { spaces: 2 });
     });
   });
 
-  describe('loadJumonLock', () => {
+  describe('loadCccscLock', () => {
     test('should load existing lock file', async () => {
       const mockLock = {
         lockfileVersion: 1,
@@ -102,16 +102,16 @@ describe('Config Utils', () => {
       mockedFs.pathExists.mockResolvedValue(true);
       mockedFs.readJson.mockResolvedValue(mockLock);
 
-      const result = await loadJumonLock(false);
+      const result = await loadCccscLock(false);
 
       expect(result).toEqual(mockLock);
-      expect(mockedPaths.getJumonLockPath).toHaveBeenCalledWith(false);
+      expect(mockedPaths.getCccscLockPath).toHaveBeenCalledWith(false);
     });
 
     test('should return default lock when file does not exist', async () => {
       mockedFs.pathExists.mockResolvedValue(false);
 
-      const result = await loadJumonLock(true);
+      const result = await loadCccscLock(true);
 
       expect(result).toEqual({
         lockfileVersion: 1,
@@ -120,18 +120,18 @@ describe('Config Utils', () => {
     });
   });
 
-  describe('saveJumonLock', () => {
+  describe('saveCccscLock', () => {
     test('should save lock file', async () => {
       const lock = {
         lockfileVersion: 1,
         repositories: {}
       };
 
-      await saveJumonLock(lock, false);
+      await saveCccscLock(lock, false);
 
-      expect(mockedPaths.ensureJumonConfigDir).toHaveBeenCalledWith(false);
-      expect(mockedPaths.getJumonLockPath).toHaveBeenCalledWith(false);
-      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/jumon-lock.json', lock, { spaces: 2 });
+      expect(mockedPaths.ensureCccscConfigDir).toHaveBeenCalledWith(false);
+      expect(mockedPaths.getCccscLockPath).toHaveBeenCalledWith(false);
+      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/cccsc-lock.json', lock, { spaces: 2 });
     });
   });
 
@@ -145,7 +145,7 @@ describe('Config Utils', () => {
 
       await addRepositoryToConfig('user', 'repo', 'test.md', 'alias', 'main', true);
 
-      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/jumon.json', {
+      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/cccsc.json', {
         repositories: {
           'user/repo': {
             branch: 'main',
@@ -168,7 +168,7 @@ describe('Config Utils', () => {
 
       await addRepositoryToConfig('user', 'repo', null, null, 'main', false);
 
-      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/jumon.json', {
+      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/cccsc.json', {
         repositories: {
           'user/repo': {
             branch: 'main',
@@ -193,7 +193,7 @@ describe('Config Utils', () => {
 
       await addRepositoryToConfig('user', 'repo', 'new.md', null, 'main', true);
 
-      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/jumon.json', {
+      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/cccsc.json', {
         repositories: {
           'user/repo': {
             branch: 'main',
@@ -215,7 +215,7 @@ describe('Config Utils', () => {
 
       await addRepositoryToConfig('user', 'repo', null, null, 'develop', true);
 
-      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/jumon.json', {
+      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/cccsc.json', {
         repositories: {
           'user/repo': {
             branch: 'develop',
@@ -239,7 +239,7 @@ describe('Config Utils', () => {
 
       await addRepositoryToLock('user', 'repo', 'abc123', 'test.md', false);
 
-      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/jumon-lock.json', {
+      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/cccsc-lock.json', {
         lockfileVersion: 1,
         repositories: {
           'user/repo': {
@@ -267,7 +267,7 @@ describe('Config Utils', () => {
 
       await addRepositoryToLock('user', 'repo', 'new456', 'test.md', true);
 
-      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/jumon-lock.json', {
+      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/cccsc-lock.json', {
         lockfileVersion: 1,
         repositories: {
           'user/repo': {
@@ -290,7 +290,7 @@ describe('Config Utils', () => {
 
       await addRepositoryToLock('user', 'repo', 'abc123', null, false);
 
-      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/jumon-lock.json', {
+      expect(mockedFs.writeJson).toHaveBeenCalledWith('/test/cccsc-lock.json', {
         lockfileVersion: 1,
         repositories: {
           'user/repo': {

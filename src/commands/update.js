@@ -2,14 +2,14 @@ import path from 'path';
 import fs from 'fs-extra';
 import { resolveRepositoryRevision } from '../utils/github.js';
 import { ensureCommandsDir } from '../utils/paths.js';
-import { loadJumonConfig, loadJumonLock, saveJumonLock } from '../utils/config.js';
+import { loadCccscConfig, loadCccscLock, saveCccscLock } from '../utils/config.js';
 import { parseRepositoryKey, validateRepositoryConfig } from '../utils/repository.js';
 import { handleCommandError, logError, logWarning } from '../utils/errors.js';
 import { installCommand } from './install.js';
 
 
 async function updateLockFile(config, isLocal) {
-  const lock = await loadJumonLock(isLocal);
+  const lock = await loadCccscLock(isLocal);
   
   if (!lock.repositories) {
     lock.repositories = {};
@@ -44,7 +44,7 @@ async function updateLockFile(config, isLocal) {
     }
   }
   
-  await saveJumonLock(lock, isLocal);
+  await saveCccscLock(lock, isLocal);
   return lock;
 }
 
@@ -66,10 +66,10 @@ async function clearCommandsDirectory(config, isLocal) {
 export async function updateCommand(options) {
   try {
     const isLocal = !options.global;
-    const config = await loadJumonConfig(isLocal);
+    const config = await loadCccscConfig(isLocal);
     
     if (!config.repositories || Object.keys(config.repositories).length === 0) {
-      console.log('No repositories to update (jumon.json is empty or not found)');
+      console.log('No repositories to update (cccsc.json is empty or not found)');
       return;
     }
     

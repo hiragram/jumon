@@ -34,8 +34,8 @@ describe('List Command', () => {
   describe('successful listing', () => {
     test('should list commands in both local and global by default', async () => {
       // Mock local and global paths
-      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/jumon');
-      vi.mocked(paths.getGlobalCommandsPath).mockReturnValue('/global/commands/jumon');
+      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/cccsc');
+      vi.mocked(paths.getGlobalCommandsPath).mockReturnValue('/global/commands/cccsc');
 
       vi.mocked(fs.pathExists)
         .mockResolvedValueOnce(true)  // local exists
@@ -63,7 +63,7 @@ describe('List Command', () => {
     });
 
     test('should list only local commands when --local flag is used', async () => {
-      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/jumon');
+      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/cccsc');
       
       vi.mocked(fs.pathExists).mockResolvedValue(true);
       
@@ -84,7 +84,7 @@ describe('List Command', () => {
     });
 
     test('should list only global commands when --global flag is used', async () => {
-      vi.mocked(paths.getGlobalCommandsPath).mockReturnValue('/global/commands/jumon');
+      vi.mocked(paths.getGlobalCommandsPath).mockReturnValue('/global/commands/cccsc');
       
       vi.mocked(fs.pathExists).mockResolvedValue(true);
       
@@ -105,7 +105,7 @@ describe('List Command', () => {
     });
 
     test('should handle multiple users and repositories', async () => {
-      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/jumon');
+      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/cccsc');
       
       vi.mocked(fs.pathExists).mockResolvedValue(true);
       
@@ -129,7 +129,7 @@ describe('List Command', () => {
     });
 
     test('should filter out non-markdown files', async () => {
-      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/jumon');
+      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/cccsc');
       vi.mocked(fs.pathExists).mockResolvedValue(true);
       
       vi.mocked(fs).readdir
@@ -150,7 +150,7 @@ describe('List Command', () => {
     });
 
     test('should handle repositories with no markdown files', async () => {
-      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/jumon');
+      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/cccsc');
       vi.mocked(fs.pathExists).mockResolvedValue(true);
       
       vi.mocked(fs).readdir
@@ -233,7 +233,7 @@ describe('List Command', () => {
     });
 
     test('should handle stat errors for individual entries', async () => {
-      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/jumon');
+      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/cccsc');
       vi.mocked(fs.pathExists).mockResolvedValue(true);
       
       vi.mocked(fs).readdir
@@ -271,7 +271,7 @@ describe('List Command', () => {
     });
 
     test('should handle mixed file types in user directories', async () => {
-      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/jumon');
+      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/cccsc');
       vi.mocked(fs.pathExists).mockResolvedValue(true);
       
       vi.mocked(fs).readdir
@@ -295,8 +295,8 @@ describe('List Command', () => {
 
   describe('both local and global', () => {
     test('should show both when neither flag is specified', async () => {
-      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/jumon');
-      vi.mocked(paths.getGlobalCommandsPath).mockReturnValue('/global/commands/jumon');
+      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/cccsc');
+      vi.mocked(paths.getGlobalCommandsPath).mockReturnValue('/global/commands/cccsc');
       
       vi.mocked(paths).getCommandsPath
         .mockReturnValueOnce('/local/commands')
@@ -327,8 +327,8 @@ describe('List Command', () => {
     });
 
     test('should handle when only local has commands', async () => {
-      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/jumon');
-      vi.mocked(paths.getGlobalCommandsPath).mockReturnValue('/global/commands/jumon');
+      vi.mocked(paths.getLocalCommandsPath).mockReturnValue('/local/commands/cccsc');
+      vi.mocked(paths.getGlobalCommandsPath).mockReturnValue('/global/commands/cccsc');
       
       vi.mocked(paths).getCommandsPath
         .mockReturnValueOnce('/local/commands')

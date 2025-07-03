@@ -2,7 +2,7 @@ import path from 'path';
 import fs from 'fs-extra';
 import { parseRepositoryPath, getFileContent, findMarkdownFiles, resolveRepositoryRevision } from '../utils/github.js';
 import { ensureCommandsDir } from '../utils/paths.js';
-import { addRepositoryToConfig, addRepositoryToLock, loadJumonConfig } from '../utils/config.js';
+import { addRepositoryToConfig, addRepositoryToLock, loadCccscConfig } from '../utils/config.js';
 import { parseRepositoryKey } from '../utils/repository.js';
 import { createInterface } from 'readline';
 
@@ -43,7 +43,7 @@ async function promptUser(question) {
 }
 
 async function checkRepositoryConflict(user, repo, commandPath, isLocal) {
-  const config = await loadJumonConfig(isLocal);
+  const config = await loadCccscConfig(isLocal);
   const repoKey = `${user}/${repo}`;
   
   if (!config.repositories || !config.repositories[repoKey]) {
@@ -127,7 +127,7 @@ export async function addCommand(repository, options) {
       if (conflictPath && !options.alias) {
         console.error(`Error: Command '${commandName}' already exists at ${conflictPath}`);
         console.error(`Use --alias flag to install with a different name:`);
-        console.error(`  jumon add ${repository} --alias <new-name>`);
+        console.error(`  cccsc add ${repository} --alias <new-name>`);
         process.exit(1);
       }
       

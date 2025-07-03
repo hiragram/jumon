@@ -10,7 +10,7 @@ import { updateCommand } from '../src/commands/update.js';
 const program = new Command();
 
 program
-  .name('jumon')
+  .name('cccsc')
   .description('Claude Code custom slash commands package manager')
   .version('0.1.0');
 
@@ -25,7 +25,7 @@ program
 
 program
   .command('install')
-  .description('Install all commands from jumon-lock.json - defaults to local')
+  .description('Install all commands from cccsc-lock.json - defaults to local')
   .option('-g, --global', 'Install to global commands')
   .option('-l, --local', 'Install to local project [default]')
   .action(installCommand);
@@ -46,7 +46,7 @@ program
 
 program
   .command('update')
-  .description('Update commands to latest versions based on jumon.json constraints')
+  .description('Update commands to latest versions based on cccsc.json constraints')
   .option('-g, --global', 'Update global commands')
   .option('-l, --local', 'Update local commands [default]')
   .action(updateCommand);

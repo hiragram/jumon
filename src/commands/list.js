@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import { getCommandsPath, getLocalCommandsPath, getGlobalCommandsPath } from '../utils/paths.js';
-import { loadJumonLock } from '../utils/config.js';
+import { loadCccscLock } from '../utils/config.js';
 
 async function listCommandsInDirectory(commandsPath, title, isGlobal = false) {
   if (!(await fs.pathExists(commandsPath))) {

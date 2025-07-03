@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs-extra';
 import { getCommandsPath } from '../utils/paths.js';
-import { loadJumonConfig, saveJumonConfig, loadJumonLock, saveJumonLock } from '../utils/config.js';
+import { loadCccscConfig, saveCccscConfig, loadCccscLock, saveCccscLock } from '../utils/config.js';
 
 async function findCommandInConfig(commandName, config, isLocal = false) {
   if (!config.repositories) {
@@ -135,8 +135,8 @@ export async function removeCommand(commandName, options) {
       process.exit(1);
     }
     
-    const config = await loadJumonConfig(isLocal);
-    const lock = await loadJumonLock(isLocal);
+    const config = await loadCccscConfig(isLocal);
+    const lock = await loadCccscLock(isLocal);
     
     // First try to find command in new configuration format
     const configResult = await findCommandInConfig(commandName, config, isLocal);
@@ -182,8 +182,8 @@ export async function removeCommand(commandName, options) {
       // Update lock file
       await removeCommandFromLock(command.name, repoKey, lock, isLocal);
       
-      await saveJumonConfig(config, isLocal);
-      await saveJumonLock(lock, isLocal);
+      await saveCccscConfig(config, isLocal);
+      await saveCccscLock(lock, isLocal);
       
       console.log(`✓ Successfully removed command '${commandName}' (from ${repoKey})`);
       return;
