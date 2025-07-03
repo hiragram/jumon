@@ -48,6 +48,7 @@ describe('Add Command', () => {
     
     mockedGithub.getFileContent.mockResolvedValue('# Test Command\nTest content');
     mockedGithub.getLatestCommitHash.mockResolvedValue('abc123def456');
+    mockedGithub.resolveRepositoryRevision.mockResolvedValue('abc123def456');
     
     mockedConfig.loadJumonConfig.mockResolvedValue({ repositories: {} });
     mockedConfig.addRepositoryToConfig.mockResolvedValue();

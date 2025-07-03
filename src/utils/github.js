@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { logWarning } from './errors.js';
 
 export function parseRepositoryPath(repoPath) {
   const parts = repoPath.split('/');
@@ -89,5 +90,54 @@ export async function findMarkdownFiles(user, repo, basePath = '', branch = 'mai
     return files;
   } catch (error) {
     throw new Error(`Failed to find markdown files: ${error.message}`);
+  }
+}
+
+/**
+ * Resolves repository revision (commit hash) based on configuration
+ * @param {string} user - GitHub username
+ * @param {string} repo - Repository name
+ * @param {object} repoConfig - Repository configuration object
+ * @param {string} [repoConfig.branch] - Branch name (defaults to 'main')
+ * @param {string} [repoConfig.version] - Version/tag name
+ * @param {string} [repoConfig.tag] - Tag name
+ * @returns {Promise<string>} Repository commit hash
+ * @throws {Error} If parameters are invalid or repository cannot be resolved
+ */
+export async function resolveRepositoryRevision(user, repo, repoConfig) {
+  // Parameter validation
+  if (typeof user !== 'string' || !user.trim()) {
+    throw new Error('User parameter must be a non-empty string');
+  }
+  if (typeof repo !== 'string' || !repo.trim()) {
+    throw new Error('Repo parameter must be a non-empty string');
+  }
+  if (!repoConfig || typeof repoConfig !== 'object') {
+    throw new Error('RepoConfig parameter must be an object');
+  }
+  
+  const branch = (repoConfig.branch && typeof repoConfig.branch === 'string') 
+    ? repoConfig.branch 
+    : 'main';
+  
+  if (repoConfig.version && typeof repoConfig.version === 'string') {
+    const tagName = repoConfig.version.replace(/^[~^>=<\s]+/, '');
+    try {
+      const response = await axios.get(`https://api.github.com/repos/${user}/${repo}/git/refs/tags/${tagName}`);
+      return response.data.object.sha;
+    } catch (error) {
+      logWarning(`Failed to resolve version ${repoConfig.version} for ${user}/${repo}, falling back to latest commit`);
+    }
+    return await getLatestCommitHash(user, repo, branch);
+  } else if (repoConfig.tag && typeof repoConfig.tag === 'string') {
+    try {
+      const response = await axios.get(`https://api.github.com/repos/${user}/${repo}/git/refs/tags/${repoConfig.tag}`);
+      return response.data.object.sha;
+    } catch (error) {
+      logWarning(`Failed to resolve tag ${repoConfig.tag} for ${user}/${repo}, falling back to latest commit`);
+    }
+    return await getLatestCommitHash(user, repo, branch);
+  } else {
+    return await getLatestCommitHash(user, repo, branch);
   }
 }

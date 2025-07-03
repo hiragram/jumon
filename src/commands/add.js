@@ -1,8 +1,9 @@
 import path from 'path';
 import fs from 'fs-extra';
-import { parseRepositoryPath, getFileContent, findMarkdownFiles, getLatestCommitHash } from '../utils/github.js';
+import { parseRepositoryPath, getFileContent, findMarkdownFiles, resolveRepositoryRevision } from '../utils/github.js';
 import { ensureCommandsDir } from '../utils/paths.js';
 import { addRepositoryToConfig, addRepositoryToLock, loadJumonConfig } from '../utils/config.js';
+import { parseRepositoryKey } from '../utils/repository.js';
 import { createInterface } from 'readline';
 
 async function checkCommandConflict(commandName, targetDir) {
@@ -136,7 +137,7 @@ export async function addCommand(repository, options) {
         const targetFile = path.join(targetDir, `${commandName}.md`);
         await fs.writeFile(targetFile, content);
         
-        const revision = await getLatestCommitHash(user, repo, branch);
+        const revision = await resolveRepositoryRevision(user, repo, { branch });
         
         await addRepositoryToConfig(user, repo, filePath, options.alias, branch, isLocal);
         await addRepositoryToLock(user, repo, revision, filePath, isLocal);
@@ -179,7 +180,7 @@ export async function addCommand(repository, options) {
       
       console.log(`Installing ${files.length} commands...`);
       
-      const revision = await getLatestCommitHash(user, repo, branch);
+      const revision = await resolveRepositoryRevision(user, repo, { branch });
       
       for (const file of files) {
         try {
